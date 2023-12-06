@@ -1,12 +1,10 @@
 package com.ecommerce.myapp.Users.Controller;
 
-import com.ecommerce.myapp.DTO.Category.ReqCreateCategory;
 import com.ecommerce.myapp.Users.Dto.AppUserDto;
 import com.ecommerce.myapp.Users.Dto.ResListUsers;
 import com.ecommerce.myapp.Users.Service.UserService;
 import com.ecommerce.myapp.Users.security.ReqResSecurity.ChangePasswordRequest;
 import jakarta.validation.Valid;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -68,12 +66,12 @@ public class UserController {
             @RequestParam(name = "sortField", defaultValue = "firstName") String sortField,
             @RequestParam(name = "sortDir", defaultValue = "asc") String sortDir) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortDir.equals("asc") ? Sort.Direction.ASC : Sort.Direction.DESC, sortField));
-        Page<ResListUsers> users = userService.getUserPage(query, pageable);
+        Page<ResListUsers> adminPage = userService.getAdminPage(query, pageable);
         Map<String, Object> response = new HashMap<>();
 //        response.put("currentPage", productPage.getNumber());
 //        response.put("totalItems", productPage.getTotalElements());
-        response.put("users", users.getContent());
-        response.put("totalPages", users.getTotalPages());
+        response.put("users", adminPage.getContent());
+        response.put("totalPages", adminPage.getTotalPages());
         return ResponseEntity.ok(response);
     }
 

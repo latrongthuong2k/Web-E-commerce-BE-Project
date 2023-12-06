@@ -33,7 +33,7 @@ public interface UserService {
 
     byte[] getUserProfileImage(Integer userId);
 
-    Page<ResListUsers> getUserPage(String query, Pageable pageable);
+    Page<ResListUsers> getAdminPage(String query, Pageable pageable);
 
     void updateStatus(Integer userId);
 }

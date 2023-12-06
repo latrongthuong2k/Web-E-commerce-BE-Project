@@ -17,7 +17,6 @@ import com.ecommerce.myapp.s3.S3Buckets;
 import com.ecommerce.myapp.s3.S3Service;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -167,9 +166,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Page<ResListUsers> getUserPage(String query, Pageable pageable) {
+    public Page<ResListUsers> getAdminPage(String query, Pageable pageable) {
         Page<AppUser> users = appUserRepository
-                .findByEmailContainingIgnoreCaseAndFirstNameContainingIgnoreCase(query, pageable);
+                .findBySearch(query, pageable);
         return users.map(userPageMapper::toDto);
     }
 
