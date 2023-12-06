@@ -9,8 +9,7 @@ import java.io.Serializable;
 /**
  * DTO for {@link Category}
  */
-public record ReqCreateCategory(
-        Integer id,
+public record ReqUpdateCategory(
         @NotNull @Size(max = 30) String categoryName,
         ParentCategoryDto parentCategory
 ) implements Serializable {

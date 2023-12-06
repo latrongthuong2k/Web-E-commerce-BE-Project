@@ -56,7 +56,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // Authentication path bypass logic
         if (request.getServletPath().contains("/api/v1/auth")) {
             filterChain.doFilter(request, response);
-            return; // Quan trọng: Dừng xử lý nếu đang xử lý đường dẫn xác thực
+            return;
+            // Quan trọng: Dừng xử lý nếu đang xử lý đường dẫn xác thực
         }
 
         // Cookie authentication logic
@@ -72,9 +73,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         System.out.println(e.getMessage());
                         return;
                     }
-
                 }
-                break; // Phát hiện cookie và xử lý xác thực, không cần kiểm tra thêm
+                break;
+                // Phát hiện cookie và xử lý xác thực, không cần kiểm tra thêm
             }
         }
 
@@ -90,7 +91,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 return;
             }
         }
-        filterChain.doFilter(request, response); // Quan trọng: Gọi này nên ở cuối và chỉ gọi một lần
+        filterChain.doFilter(request, response);
+        // Quan trọng: Gọi này nên ở cuối và chỉ gọi một lần
     }
 
     private void authenticateToken(HttpServletRequest request, String token) {

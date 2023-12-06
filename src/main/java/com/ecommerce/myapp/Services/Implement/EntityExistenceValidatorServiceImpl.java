@@ -18,26 +18,22 @@ public class EntityExistenceValidatorServiceImpl implements EntityExistenceValid
     private final BillRepository billRepository;
 
     @Override
-    public void checkExistUser(Integer userId)
-    {
-        if(!appUserRepository.existsById(userId))
-        {
+    public void checkExistUser(Integer userId) {
+        if (!appUserRepository.existsById(userId)) {
             throw new ResourceNotFoundException("user with id [%s] not found".formatted(userId));
         }
     }
+
     @Override
-    public void checkExistProduct(Integer productId)
-    {
-        if(!productRepository.existsById(productId))
-        {
+    public void checkExistProduct(Integer productId) {
+        if (!productRepository.existsById(productId)) {
             throw new ResourceNotFoundException("product with id [%s] not found".formatted(productId));
         }
     }
+
     @Override
-    public void checkExistBill(Integer billId)
-    {
-        if(!billRepository.existsById(billId))
-        {
+    public void checkExistBill(Integer billId) {
+        if (!billRepository.existsById(billId)) {
             throw new ResourceNotFoundException("bill with id [%s] not found".formatted(billId));
         }
     }

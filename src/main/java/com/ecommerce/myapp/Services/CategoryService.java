@@ -1,6 +1,7 @@
 package com.ecommerce.myapp.Services;
 
 import com.ecommerce.myapp.DTO.Category.ReqCreateCategory;
+import com.ecommerce.myapp.DTO.Category.ReqUpdateCategory;
 import com.ecommerce.myapp.DTO.Category.ResCategory;
 import com.ecommerce.myapp.Entity.ProductConnectEntites.Category;
 import org.springframework.data.domain.Page;
@@ -10,7 +11,7 @@ import java.util.List;
 
 
 public interface CategoryService {
-    Category saveCategory(ReqCreateCategory reqCreateCategory);
+    void saveCategory(ReqCreateCategory reqCreateCategory);
 
     List<ReqCreateCategory> getAllCategory();
 
@@ -19,7 +20,7 @@ public interface CategoryService {
     // phân trang
     Page<ReqCreateCategory> getCategoryPage(String query, Pageable pageable);
 
-    void updateCategoryById(Integer categoryId, ReqCreateCategory reqCreateCategory);
+    void updateCategoryById(Integer categoryId, ReqUpdateCategory reqCreateCategory);
 
     void deleteById(Integer id);
 

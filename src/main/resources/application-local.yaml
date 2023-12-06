@@ -29,7 +29,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/web-e-commerce-db
     username: root
-    password: thuong191020
+    password: Thuong191020
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:

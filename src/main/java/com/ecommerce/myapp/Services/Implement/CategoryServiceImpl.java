@@ -2,9 +2,12 @@ package com.ecommerce.myapp.Services.Implement;
 
 import com.ecommerce.myapp.DTO.Category.ParentCategoryDto;
 import com.ecommerce.myapp.DTO.Category.ReqCreateCategory;
+import com.ecommerce.myapp.DTO.Category.ReqUpdateCategory;
 import com.ecommerce.myapp.DTO.Category.ResCategory;
 import com.ecommerce.myapp.DTO.Mapper.CategoryMapper;
 import com.ecommerce.myapp.Entity.ProductConnectEntites.Category;
+import com.ecommerce.myapp.Exceptions.CannotDeleteException;
+import com.ecommerce.myapp.Exceptions.DuplicateResourceException;
 import com.ecommerce.myapp.Exceptions.ResourceNotFoundException;
 import com.ecommerce.myapp.Repositories.Product.CategoryRepository;
 import com.ecommerce.myapp.Services.CategoryService;
@@ -30,10 +33,14 @@ public class CategoryServiceImpl implements CategoryService {
 
     // save new category
     @Override
-    public Category saveCategory(ReqCreateCategory reqCreateCategory) {
-        String cateName = reqCreateCategory.categoryName();
-        Category category = categoryMapper.toEntity(reqCreateCategory);
-        return categoryRepository.save(category);
+    public void saveCategory(ReqCreateCategory reqCreateCategory) {
+        Category categoryNew = categoryMapper.toEntity(reqCreateCategory);
+        Optional<Category> categoryCheck = categoryRepository.findByCategoryName(reqCreateCategory.categoryName());
+        System.out.println("hi");
+        if (categoryCheck.isPresent()) {
+            throw new DuplicateResourceException("Category is exist, please input another category name");
+        } else
+            categoryRepository.save(categoryNew);
     }
 
     // Get list all category
@@ -77,9 +84,19 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public void updateCategoryById(Integer categoryId, ReqCreateCategory reqCreateCategory) {
+    public void updateCategoryById(Integer categoryId, ReqUpdateCategory reqCreateCategory) {
+//        System.out.println("ok");
         Category category = foundCategory(categoryId);
         category.setCategoryName(reqCreateCategory.categoryName());
+        if (reqCreateCategory.parentCategory() != null) {
+            Category parentCategory = categoryRepository.findById(reqCreateCategory.parentCategory().id()).orElse(null);
+//            Category parentCategory = categoryRepository.findById(reqCreateCategory.parentCategory().id()).orElseThrow(
+//                    () -> new EntityNotFoundException("category parent with" +
+//                                                      reqCreateCategory.parentCategory().id() +
+//                                                      "is not found"));
+            category.setParentCategory(parentCategory);
+        } else
+            category.setParentCategory(null);
         categoryRepository.save(category);
     }
 
@@ -88,6 +105,9 @@ public class CategoryServiceImpl implements CategoryService {
     public void deleteById(Integer id) {
         Optional<Category> optionalCategory = categoryRepository.findById(id);
         if (optionalCategory.isPresent()) {
+            Category category = optionalCategory.get();
+            if (!category.getProducts().isEmpty())
+                throw new CannotDeleteException("Cannot delete category as it contains products");
             categoryRepository.deleteById(id);
         } else {
             throw new EntityNotFoundException("No category found with id: " + id);
@@ -102,7 +122,7 @@ public class CategoryServiceImpl implements CategoryService {
             ParentCategoryDto parentDto = new ParentCategoryDto(parentCategory.getId(),
                     parentCategory.getCategoryName());
             return new ResCategory(category.getId(), category.getCategoryName(), parentDto);
-        }else {
+        } else {
             return new ResCategory(category.getId(), category.getCategoryName(), null);
         }
     }

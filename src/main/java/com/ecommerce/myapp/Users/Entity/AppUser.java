@@ -49,8 +49,6 @@ public class AppUser implements UserDetails {
     @Column(name = "password", unique = true, nullable = false)
     private String password;
 
-
-
     // Thời điểm tạo
     @CreatedDate
     @Column(name = "created_at", updatable = false, nullable = false)
@@ -61,6 +59,8 @@ public class AppUser implements UserDetails {
     @Column(name = "update_at", insertable = false)
     private LocalDateTime updateAt;
 
+    @Column(name = "status", nullable = false)
+    private Boolean status;
 
     //---------------- OneToMany ----------------
 

@@ -9,7 +9,7 @@ import com.ecommerce.myapp.Repositories.Product.ProductCartDetailRepository;
 import com.ecommerce.myapp.Repositories.Product.ProductRepository;
 import com.ecommerce.myapp.Services.CartService;
 import com.ecommerce.myapp.Users.Entity.AppUser;
-import com.ecommerce.myapp.Users.HttpReqRes.AppUserDto;
+import com.ecommerce.myapp.Users.Dto.AppUserDto;
 import com.ecommerce.myapp.Users.Repository.AppUserRepository;
 import com.ecommerce.myapp.Utils.ProductCartDetailMapper;
 import jakarta.persistence.EntityNotFoundException;

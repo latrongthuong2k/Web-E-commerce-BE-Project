@@ -14,12 +14,12 @@ public class MyappApplication {
     public static void main(String[] args) {
         SpringApplication.run(MyappApplication.class, args);
     }
-    @Bean
-    public CommandLineRunner commandLineRunner(TokenService service) {
-        return args -> {
-            service.deleteAllExpiredTokenWhenReachedLimit(1000);
-        };
-    }
+//    @Bean
+//    public CommandLineRunner commandLineRunner(TokenService service) {
+//        return args -> {
+//            service.deleteAllExpiredTokenWhenReachedLimit(1000);
+//        };
+//    }
     //    @Bean
 //    public CommandLineRunner commandLineRunner(
 //            AuthenticationService service

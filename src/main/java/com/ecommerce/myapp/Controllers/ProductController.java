@@ -157,6 +157,7 @@ public class ProductController {
 
 
     // DELETE
+    @CacheEvict(value = "productPage", allEntries = true)
     @DeleteMapping("/{productId}")
     public ResponseEntity<String> deleteProduct(@PathVariable Integer productId) {
         productService.deleteById(productId);

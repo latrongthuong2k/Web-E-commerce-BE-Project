@@ -72,7 +72,7 @@ public class SecurityConfiguration {
                                             response.sendRedirect("http://localhost:3000");
                                             SecurityContextHolder.clearContext();
                                         })
-//                                .logoutSuccessUrl("http://localhost:3000")
+                                //.logoutSuccessUrl("http://localhost:3000")
                 );
         return http.build();
     }

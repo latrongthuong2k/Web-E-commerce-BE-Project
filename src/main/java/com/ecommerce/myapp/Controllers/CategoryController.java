@@ -1,12 +1,15 @@
 package com.ecommerce.myapp.Controllers;
 
 import com.ecommerce.myapp.DTO.Category.ReqCreateCategory;
+import com.ecommerce.myapp.DTO.Category.ReqUpdateCategory;
 import com.ecommerce.myapp.DTO.Category.ResCategory;
 import com.ecommerce.myapp.Entity.ProductConnectEntites.Category;
+import com.ecommerce.myapp.Exceptions.DuplicateResourceException;
 import com.ecommerce.myapp.Services.CategoryService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -28,20 +31,15 @@ public class CategoryController {
     private final CategoryService categoryService;
     private final CacheManager cacheManager;
 
-
+    @CacheEvict(value = "categoryPage", allEntries = true)
     @PostMapping("create")
-    public ResponseEntity<String> createCategory(@RequestBody ReqCreateCategory reqCreateCategory) {
-        Category newCategory = categoryService.saveCategory(reqCreateCategory);
-        URI location = ServletUriComponentsBuilder
-                .fromCurrentRequest()
-                .path("/{categoryId}")
-                .buildAndExpand(newCategory.getId())
-                .toUri();
-        return ResponseEntity.created(location).body("Category created successfully");
+    public ResponseEntity<String> createCategory( @Valid @RequestBody ReqCreateCategory reqCreateCategory) {
+        categoryService.saveCategory(reqCreateCategory);
+        return ResponseEntity.ok("Category created successfully");
     }
-
+    @CacheEvict(value = "categoryPage", allEntries = true)
     @PutMapping("/update")
-    public ResponseEntity<String> updateCategory(Integer categoryId, @Valid @RequestBody ReqCreateCategory reqCreateCategory) {
+    public ResponseEntity<String> updateCategory(@RequestParam("categoryId") Integer categoryId, @Valid @RequestBody ReqUpdateCategory reqCreateCategory) {
         categoryService.updateCategoryById(categoryId, reqCreateCategory);
         return ResponseEntity.ok().body("Category updated successfully");
     }
@@ -62,7 +60,8 @@ public class CategoryController {
         List<ReqCreateCategory> categories = categoryService.getAllCategory();
         return ResponseEntity.ok(categories);
     }
-    @Cacheable(value = "categoryPage", key = "{#page,#sortField,#sortDir}")
+
+    @Cacheable(value = "categoryPage", key = "{#page,#sortField,#sortDir,#query}")
     @GetMapping("/page")
     public ResponseEntity<Map<String, Object>> getCategoryPage(
             @RequestParam(name = "page", defaultValue = "0") int page,
@@ -70,9 +69,8 @@ public class CategoryController {
             @RequestParam(name = "q", defaultValue = "") String query,
             @RequestParam(name = "sortField", defaultValue = "categoryName") String sortField,
             @RequestParam(name = "sortDir", defaultValue = "asc") String sortDir) {
-        Pageable pageable = PageRequest.of(page , size, Sort.by(sortDir.equals("asc") ? Sort.Direction.ASC : Sort.Direction.DESC, sortField));
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortDir.equals("asc") ? Sort.Direction.ASC : Sort.Direction.DESC, sortField));
         Page<ReqCreateCategory> categories = categoryService.getCategoryPage(query, pageable);
-        System.out.println(categories.getContent());
         Map<String, Object> response = new HashMap<>();
         response.put("categories", categories.getContent());
 //        response.put("currentPage", productPage.getNumber());
@@ -81,8 +79,8 @@ public class CategoryController {
         return ResponseEntity.ok(response);
     }
 
-
-    @DeleteMapping("/{categoryId}")
+    @CacheEvict(value = "categoryPage", allEntries = true)
+    @DeleteMapping("/delete/{categoryId}")
     public ResponseEntity<String> deleteCategory(@PathVariable Integer categoryId) {
         categoryService.deleteById(categoryId);
         return ResponseEntity.ok().body("Category deleted successfully");

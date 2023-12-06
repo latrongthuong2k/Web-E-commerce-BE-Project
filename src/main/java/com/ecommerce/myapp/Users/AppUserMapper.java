@@ -1,7 +1,7 @@
 package com.ecommerce.myapp.Users;
 
 import com.ecommerce.myapp.Users.Entity.AppUser;
-import com.ecommerce.myapp.Users.HttpReqRes.AppUserDto;
+import com.ecommerce.myapp.Users.Dto.AppUserDto;
 import org.mapstruct.*;
 
 @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = MappingConstants.ComponentModel.SPRING)

@@ -130,11 +130,11 @@ public class Product {
     private List<ProductCartDetail> productCartDetails = new ArrayList<>();
 
     // review k xoá vì để lưu data phát triển sản phẩm
-    @OneToMany(mappedBy = "product")
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
     private List<Review> reviews = new ArrayList<>();
 
     // image relationship table
-    @OneToMany(mappedBy = "product")
+    @OneToMany(mappedBy = "product",cascade = CascadeType.ALL)
     private List<ProductImage> images = new ArrayList<>();
 
 

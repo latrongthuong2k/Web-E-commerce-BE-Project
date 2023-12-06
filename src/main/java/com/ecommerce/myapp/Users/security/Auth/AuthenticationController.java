@@ -27,7 +27,6 @@ public class AuthenticationController {
         if (userService.existsByEmail(request.getEmail())) {
             return ResponseEntity.badRequest().body("Email has already been taken");
         }
-
         return ResponseEntity.ok(authService.register(request));
     }
 
@@ -37,6 +36,7 @@ public class AuthenticationController {
 //    ) {
 //        return ResponseEntity.ok(authService.authenticate(request));
 //    }
+
 @PostMapping("/authenticate")
 public ResponseEntity<?> authenticate(
         @RequestBody AuthenticationRequest request,

@@ -4,7 +4,7 @@ package com.ecommerce.myapp.Controllers;
 import com.ecommerce.myapp.DTO.ProductCartDetailDDTO;
 import com.ecommerce.myapp.DTO.UserWithProductDTO;
 import com.ecommerce.myapp.Services.CartService;
-import com.ecommerce.myapp.Users.HttpReqRes.AppUserDto;
+import com.ecommerce.myapp.Users.Dto.AppUserDto;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

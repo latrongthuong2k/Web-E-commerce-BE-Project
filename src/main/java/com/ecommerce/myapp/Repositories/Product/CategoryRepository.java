@@ -8,8 +8,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, Integer> {
-    @Query("FROM Category c WHERE LOWER(c.categoryName) LIKE LOWER(CONCAT('%', :search, '%'))")
-    Page<Category> findByCategoryNameContainingIgnoreCase(@Param("search") String search, Pageable pageable);
+    Page<Category> findByCategoryNameContainingIgnoreCase(String categoryName, Pageable pageable);
+    Optional<Category> findByCategoryName(String categoryName);
 }

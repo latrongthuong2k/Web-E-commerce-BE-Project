@@ -1,7 +1,7 @@
 package com.ecommerce.myapp.Services;
 
 import com.ecommerce.myapp.DTO.ProductCartDetailDDTO;
-import com.ecommerce.myapp.Users.HttpReqRes.AppUserDto;
+import com.ecommerce.myapp.Users.Dto.AppUserDto;
 
 import java.util.List;
 public interface CartService {

@@ -21,7 +21,7 @@ public class Category {
     private Integer id;
 
     @Size(max = 30)
-    @Column(name = "category_name", nullable = false, length = 30)
+    @Column(name = "category_name", nullable = false, length = 30,unique = true)
     private String categoryName;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

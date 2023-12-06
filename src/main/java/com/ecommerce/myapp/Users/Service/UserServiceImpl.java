@@ -3,8 +3,10 @@ package com.ecommerce.myapp.Users.Service;
 import com.ecommerce.myapp.Exceptions.ResourceNotFoundException;
 import com.ecommerce.myapp.Services.validation.EntityExistenceValidatorService;
 import com.ecommerce.myapp.Users.AppUserMapper;
+import com.ecommerce.myapp.Users.Dto.ResListUsers;
+import com.ecommerce.myapp.Users.Dto.UserPageMapper;
 import com.ecommerce.myapp.Users.Entity.AppUser;
-import com.ecommerce.myapp.Users.HttpReqRes.AppUserDto;
+import com.ecommerce.myapp.Users.Dto.AppUserDto;
 import com.ecommerce.myapp.Users.Repository.AppUserRepository;
 import com.ecommerce.myapp.Users.Repository.UserImageRepository;
 import com.ecommerce.myapp.Users.security.ReqResSecurity.ChangePasswordRequest;
@@ -17,6 +19,8 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -43,6 +47,7 @@ public class UserServiceImpl implements UserService {
     private final S3Buckets s3Buckets;
     private final UserImageRepository userImageRepository;
     private final EntityExistenceValidatorService validatorService;
+    private final UserPageMapper userPageMapper;
 
     // Auth
     public void changePassword(ChangePasswordRequest request, Principal connectedUser) {
@@ -98,7 +103,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public void updateUser(Integer userId, AppUserDto appUserDto) {
         AppUser appUser = foundUser(userId);
-//        appUser.setUserName(appUserDto.userName());
         appUser.setEmail(appUserDto.email());
         appUser.setPassword(appUserDto.password());
         appUserRepository.save(appUser);
@@ -111,12 +115,13 @@ public class UserServiceImpl implements UserService {
     }
 
 
+    // chỉ có Admin role mới xoá được
     @Override
-    @CacheEvict(value = "users", key = "#userId") // xoá cache
+//    @CacheEvict(value = "users", key = "#userId") // xoá cache
     public void deleteById(Integer userId) {
         validatorService.checkExistUser(userId);
         appUserRepository.deleteById(userId);
-}
+    }
 
     @Override
     @Cacheable(value = "userId", key = "#userId") // thêm cache
@@ -159,6 +164,20 @@ public class UserServiceImpl implements UserService {
                 s3Buckets.getProduct(),
                 "profile-images/%s/%s".formatted(userId, user.getUserImage().getKey())
         );
+    }
+
+    @Override
+    public Page<ResListUsers> getUserPage(String query, Pageable pageable) {
+        Page<AppUser> users = appUserRepository
+                .findByEmailContainingIgnoreCaseAndFirstNameContainingIgnoreCase(query, pageable);
+        return users.map(userPageMapper::toDto);
+    }
+
+    @Override
+    public void updateStatus(Integer userId) {
+        AppUser appUser = foundUser(userId);
+        boolean currentStatus = appUser.getStatus();
+        appUser.setStatus(!currentStatus);
     }
 
 

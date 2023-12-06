@@ -7,6 +7,7 @@ import com.ecommerce.myapp.DTO.Product.SizesDto;
 import com.ecommerce.myapp.DTO.Product.SupplierDto;
 import com.ecommerce.myapp.Entity.Bill.Supplier;
 import com.ecommerce.myapp.Entity.ProductConnectEntites.*;
+import com.ecommerce.myapp.Exceptions.DuplicateResourceException;
 import com.ecommerce.myapp.Exceptions.ResourceNotFoundException;
 import com.ecommerce.myapp.Repositories.Product.*;
 import com.ecommerce.myapp.Services.CategoryService;
@@ -47,6 +48,9 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Product addNewProduct(ReqProductDetailDTO newProduct) {
+        Optional<Product> productCheck = productRepository.findByProductName(newProduct.productName());
+        if (productCheck.isPresent())
+            throw new DuplicateResourceException("Product is exists please input another name");
         // find in repository
         Category category = categoryService.getCategory(newProduct.category());
         Supplier supplier = supplierRepository.findById(newProduct.supplier())
