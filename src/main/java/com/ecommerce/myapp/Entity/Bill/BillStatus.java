@@ -1,7 +1,9 @@
 package com.ecommerce.myapp.Entity.Bill;
 
 public enum BillStatus {
-    CREATE,
+    PENDING,
     CANCEL,
-    APPROVE
+    APPROVE,
+    DELIVERING,
+    RECEIVED,
 }

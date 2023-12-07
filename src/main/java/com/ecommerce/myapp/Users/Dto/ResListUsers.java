@@ -1,6 +1,8 @@
 package com.ecommerce.myapp.Users.Dto;
 
 
+import com.ecommerce.myapp.Users.Role;
+
 import java.time.LocalDateTime;
 
 public record ResListUsers(
@@ -10,6 +12,7 @@ public record ResListUsers(
         String email,
         LocalDateTime createdAt,
         LocalDateTime updateAt,
-        Boolean status
+        Boolean status,
+        String role
 ) {
 }

@@ -1,6 +1,7 @@
 package com.ecommerce.myapp.Users.Entity;
 
 import com.ecommerce.myapp.Entity.*;
+import com.ecommerce.myapp.Entity.Bill.Bill;
 import com.ecommerce.myapp.Entity.ShopingCart.Cart;
 import com.ecommerce.myapp.Users.Role;
 import com.ecommerce.myapp.Users.security.Token.Token;
@@ -65,7 +66,7 @@ public class AppUser implements UserDetails {
     //---------------- OneToMany ----------------
 
     @OneToMany(mappedBy = "appUser", cascade = CascadeType.ALL)
-    private List<Order> orders = new ArrayList<>();
+    private List<Bill> bills = new ArrayList<>();
 
     @OneToMany(mappedBy = "appUser", cascade = CascadeType.ALL)
     private List<Review> reviews = new ArrayList<>();

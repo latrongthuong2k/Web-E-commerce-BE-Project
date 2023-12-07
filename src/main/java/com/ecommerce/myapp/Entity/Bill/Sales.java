@@ -19,10 +19,6 @@ public class Sales {
     @Column(name = "id", nullable = false)
     private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "product_id")
-    private Product productId;
-
     @Column(name = "quantity")
     private Integer quantity;
 
@@ -34,5 +30,7 @@ public class Sales {
     @JoinColumn(name = "bill_id")
     private Bill bill_Id;
 
-
+    @OneToOne(fetch = FetchType.LAZY,optional = false)
+    @JoinColumn(name = "product_id")
+    private Product product;
 }

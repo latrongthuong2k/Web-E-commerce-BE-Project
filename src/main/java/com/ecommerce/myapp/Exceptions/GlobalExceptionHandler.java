@@ -1,6 +1,7 @@
 package com.ecommerce.myapp.Exceptions;
 
 import io.jsonwebtoken.JwtException;
+import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,11 +41,26 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(validErrorRes);
     }
 
+    /**
+     * Handles the EntityNotFoundException exception and returns a ResponseEntity with
+     * status 404 (Not Found) and the exception's message as the response body.
+     *
+     * @param ex the EntityNotFoundException instance
+     * @return a ResponseEntity with status 404 and the exception's message
+     */
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<String> handleEntityNotFoundException(EntityNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
 
+    /**
+     * Handles the InsufficientAuthenticationException exception and returns a ResponseEntity with
+     * status 403 (Forbidden), the exception's message as the response body, and additional error details.
+     *
+     * @param ex      the InsufficientAuthenticationException instance
+     * @param request the WebRequest object to obtain the error details from
+     * @return a ResponseEntity with status 403, the exception's message, and additional error details
+     */
     @ExceptionHandler(InsufficientAuthenticationException.class)
     public ResponseEntity<ApiError> handleException(InsufficientAuthenticationException ex,
                                                     WebRequest request) {
@@ -55,8 +71,73 @@ public class GlobalExceptionHandler {
                 request.getDescription(false),
                 LocalDateTime.now()
         );
-
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(apiError);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiError> handleException(IllegalArgumentException ex,
+                                                    WebRequest request) {
+
+        ApiError apiError = new ApiError(
+                HttpStatus.BAD_REQUEST.value(),
+                ex.getMessage(),
+                request.getDescription(false),
+                LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(apiError);
+    }
+    @ExceptionHandler(MessagingException.class)
+    public ResponseEntity<ApiError> handleMessagingException(MessagingException ex, WebRequest request) {
+        ApiError apiError = new ApiError(
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                ex.getMessage(),
+                request.getDescription(false),
+                LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(apiError);
+    }
+
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<ApiError> handleDuplicateResourceException(DuplicateResourceException ex, WebRequest request) {
+        ApiError apiError = new ApiError(
+                HttpStatus.CONFLICT.value(),
+                ex.getMessage(),
+                request.getDescription(false),
+                LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(apiError);
+    }
+    @ExceptionHandler(InvalidTokenException.class)
+    public ResponseEntity<ApiError> handleInvalidTokenException(InvalidTokenException ex, WebRequest request) {
+        ApiError apiError = new ApiError(
+                HttpStatus.NOT_FOUND.value(),
+                ex.getMessage(),
+                request.getDescription(false),
+                LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(apiError);
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ApiError> handleResourceNotFoundException(ResourceNotFoundException ex, WebRequest request) {
+        ApiError apiError = new ApiError(
+                HttpStatus.NOT_FOUND.value(),
+                ex.getMessage(),
+                request.getDescription(false),
+                LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(apiError);
+    }
+
+    @ExceptionHandler(EmailSendingException.class)
+    public ResponseEntity<ApiError> handleEmailSendingException(EmailSendingException ex, WebRequest request) {
+        ApiError apiError = new ApiError(
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                ex.getMessage(),
+                request.getDescription(false),
+                LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(apiError);
     }
 
     @ExceptionHandler(AuthenticationException.class)
@@ -83,6 +164,18 @@ public class GlobalExceptionHandler {
         );
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(apiError);
     }
+    @ExceptionHandler(IllegalAccessException.class)
+    public ResponseEntity<ApiError> handleException(IllegalAccessException ex,
+                                                    WebRequest request) {
+        ApiError apiError = new ApiError(
+                HttpStatus.FORBIDDEN.value(),
+                ex.getMessage(),
+                request.getDescription(false),
+                LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(apiError);
+    }
+
 
     @ExceptionHandler(JwtException.class)
     public ResponseEntity<ApiError> handleException(JwtException ex,

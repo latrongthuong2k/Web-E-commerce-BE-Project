@@ -29,8 +29,7 @@ public class ApplicationAuditAware implements AuditorAware<Integer> {
         }
 
         // Kiểm tra loại của principal trước khi ép kiểu
-        if (authentication.getPrincipal() instanceof OAuth2User) {
-            OAuth2User userPrincipal = (OAuth2User) authentication.getPrincipal();
+        if (authentication.getPrincipal() instanceof OAuth2User userPrincipal) {
             String email = (String) userPrincipal.getAttributes().get("email");
 
             // Lấy ra user từ cơ sở dữ liệu dựa trên email
@@ -38,9 +37,8 @@ public class ApplicationAuditAware implements AuditorAware<Integer> {
 
             // Trả về id của user nếu có, nếu không trả về Optional.empty()
             return appUserOptional.map(AppUser::getId);
-        } else if (authentication.getPrincipal() instanceof AppUser) {
+        } else if (authentication.getPrincipal() instanceof AppUser appUser) {
             // Nếu principal là AppUser, xử lý tương tự
-            AppUser appUser = (AppUser) authentication.getPrincipal();
             return Optional.of(appUser.getId());
         }
 

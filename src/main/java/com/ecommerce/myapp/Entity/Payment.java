@@ -1,11 +1,11 @@
 package com.ecommerce.myapp.Entity;
 
+import com.ecommerce.myapp.Entity.Bill.Bill;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 
 @Data
 @Entity
@@ -18,9 +18,8 @@ public class Payment {
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "order_id", nullable = false)
-    @ToString.Exclude
-    private Order order;
+    @JoinColumn(name = "bill_id", nullable = false)
+    private Bill bill;
 
     @Size(max = 20)
     @Column(name = "payment_type", nullable = false, length = 20)

@@ -48,6 +48,11 @@ public class AuthenticationService {
                 .accessToken(jwtToken)
                 .build();
     }
+    public void adminCreate(AppUser user) {
+        var savedUser = repository.save(user);
+        var jwtToken = jwtService.generateToken(user);
+        saveUserToken(savedUser, jwtToken);
+    }
 
 //    public AuthenticationResponse authenticate(AuthenticationRequest request) {
 //        authenticationManager.authenticate(

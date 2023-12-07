@@ -45,7 +45,4 @@ public class ShippingAddress {
     @Column(name = "zip_code", nullable = false, length = 15)
     private String zipCode;
 
-    @OneToMany(mappedBy = "shippingAddress")
-    private List<Order> orders = new ArrayList<>();
-
 }

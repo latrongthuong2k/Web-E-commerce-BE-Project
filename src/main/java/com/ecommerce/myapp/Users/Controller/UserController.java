@@ -3,6 +3,7 @@ package com.ecommerce.myapp.Users.Controller;
 import com.ecommerce.myapp.Users.Dto.AppUserDto;
 import com.ecommerce.myapp.Users.Dto.ResListUsers;
 import com.ecommerce.myapp.Users.Service.UserService;
+import com.ecommerce.myapp.Users.security.ReqResSecurity.ChangeEmailPassWordReq;
 import com.ecommerce.myapp.Users.security.ReqResSecurity.ChangePasswordRequest;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -29,15 +30,6 @@ public class UserController {
     }
 
 
-    @PatchMapping
-    public ResponseEntity<?> changePassword(
-            @RequestBody ChangePasswordRequest request,
-            Principal connectedUser
-    ) {
-        userService.changePassword(request, connectedUser);
-        return ResponseEntity.ok().build();
-    }
-
 //    Ẩn vì có phương thức tạo bên Auth rồi
 //    @PostMapping("/create")
 //    public ResponseEntity<String> createUser(@RequestBody AppUserDto appUserDto) {
@@ -51,47 +43,11 @@ public class UserController {
 //    }
 
 
-    @GetMapping("/users")
-    public ResponseEntity<List<AppUserDto>> getAllUser() {
-        List<AppUserDto> users = userService.findAll();
-        return ResponseEntity.ok(users);
-    }
-    // user list for admin web
-//    @Cacheable(value = "userPage", key = "{#page,#sortField,#sortDir,#query}")
-    @GetMapping("/page")
-    public ResponseEntity<Map<String, Object>> getUserPage(
-            @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "size", defaultValue = "20") int size,
-            @RequestParam(name = "q", defaultValue = "") String query,
-            @RequestParam(name = "sortField", defaultValue = "firstName") String sortField,
-            @RequestParam(name = "sortDir", defaultValue = "asc") String sortDir) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sortDir.equals("asc") ? Sort.Direction.ASC : Sort.Direction.DESC, sortField));
-        Page<ResListUsers> adminPage = userService.getAdminPage(query, pageable);
-        Map<String, Object> response = new HashMap<>();
-//        response.put("currentPage", productPage.getNumber());
-//        response.put("totalItems", productPage.getTotalElements());
-        response.put("users", adminPage.getContent());
-        response.put("totalPages", adminPage.getTotalPages());
-        return ResponseEntity.ok(response);
-    }
 
-    @PutMapping("/update")
-    public ResponseEntity<String> updateUser( @RequestParam("userId") Integer userId,
-                                              @Valid @RequestBody AppUserDto appUserDto) {
-        userService.updateUser(userId, appUserDto);
-        return ResponseEntity.ok("User updated successfully");
-    }
-    @PutMapping("/update-status")
-    public ResponseEntity<String> updateUser( @RequestParam("userId") Integer userId) {
-        userService.updateStatus(userId);
-        return ResponseEntity.ok("User status updated successfully");
-    }
 
-//    @DeleteMapping("/delete")
-//    public ResponseEntity<String> deleteUser(@RequestParam("userId") Integer userId) {
-//        userService.deleteById(userId);
-//        return ResponseEntity.ok().body("User deleted successfully");
-//    }
+
+
+
 
     @PostMapping(
             value = "{customerId}/profile-image",

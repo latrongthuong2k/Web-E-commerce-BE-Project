@@ -19,12 +19,9 @@ public record ProductBasicInfoDTO(
         @Size(max = 50) @NotBlank String productName,
 
         LocalDateTime createdAt,
+        LocalDateTime updatedAt,
         @NotNull Integer quantity,
         @Min(0) BigDecimal price,
-//        @NotBlank String sku,
-//        String brand,
-//        String barcode
         @NotNull Integer status
-
 ) implements Serializable {
 }

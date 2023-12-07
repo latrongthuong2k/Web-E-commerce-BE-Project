@@ -18,7 +18,10 @@ public interface AppUserRepository extends JpaRepository<AppUser, Integer> {
     @Query("UPDATE AppUser c SET c.userImage = ?1 WHERE c.id = ?2")
     void updateProfileImageId(String key, Integer userId);
 
-    @Query("select a from AppUser a where lower(a.email) like lower(concat('%', ?1, '%')) " +
-           "or lower(a.firstName) like lower(concat('%', ?1, '%'))")
+    @Query("select a from AppUser a where" +
+           " lower(a.email) like lower(concat('%', ?1, '%')) " +
+           "or lower(a.firstName) like lower(concat('%', ?1, '%')) " +
+           "or lower(a.lastName) like lower(concat('%', ?1, '%')) " +
+           "or cast(a.createdAt as STRING ) like lower(concat('%', ?1, '%'))")
     Page<AppUser> findBySearch(String search, Pageable pageable);
 }

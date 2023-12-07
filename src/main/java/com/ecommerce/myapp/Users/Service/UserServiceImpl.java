@@ -3,12 +3,11 @@ package com.ecommerce.myapp.Users.Service;
 import com.ecommerce.myapp.Exceptions.ResourceNotFoundException;
 import com.ecommerce.myapp.Services.validation.EntityExistenceValidatorService;
 import com.ecommerce.myapp.Users.AppUserMapper;
-import com.ecommerce.myapp.Users.Dto.ResListUsers;
-import com.ecommerce.myapp.Users.Dto.UserPageMapper;
+import com.ecommerce.myapp.Users.Dto.*;
 import com.ecommerce.myapp.Users.Entity.AppUser;
-import com.ecommerce.myapp.Users.Dto.AppUserDto;
 import com.ecommerce.myapp.Users.Repository.AppUserRepository;
 import com.ecommerce.myapp.Users.Repository.UserImageRepository;
+import com.ecommerce.myapp.Users.security.Auth.AuthenticationService;
 import com.ecommerce.myapp.Users.security.ReqResSecurity.ChangePasswordRequest;
 import com.ecommerce.myapp.Users.security.ReqResSecurity.ChangeRoleRequest;
 import com.ecommerce.myapp.Users.security.Token.Token;
@@ -17,7 +16,8 @@ import com.ecommerce.myapp.s3.S3Buckets;
 import com.ecommerce.myapp.s3.S3Service;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
-import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -42,24 +42,32 @@ public class UserServiceImpl implements UserService {
     private final AppUserMapper appUserMapper;
     private final PasswordEncoder passwordEncoder;
     private final TokenRepository tokenRepository;
-    private final S3Service s3Service;
-    private final S3Buckets s3Buckets;
     private final UserImageRepository userImageRepository;
     private final EntityExistenceValidatorService validatorService;
     private final UserPageMapper userPageMapper;
-
+    private final AuthenticationService authenticationService;
+    private final S3Service s3Service;
+    private final S3Buckets s3Buckets;
+    private final CacheManager cacheManager;
     // Auth
     public void changePassword(ChangePasswordRequest request, Principal connectedUser) {
 
         var user = (AppUser) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
+        validateChangePasswordReq(request, user);
+    }
 
+    public void adminChangePasswordToAnother(ChangePasswordRequest request, AppUser user) {
+        validateChangePasswordReq(request, user);
+    }
+
+    private void validateChangePasswordReq(ChangePasswordRequest request, AppUser user) {
         // check if the current password is correct
         if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
-            throw new IllegalStateException("Wrong password");
+            throw new IllegalArgumentException("Wrong password");
         }
         // check if the two new passwords are the same
         if (!request.getNewPassword().equals(request.getConfirmationPassword())) {
-            throw new IllegalStateException("Password are not the same");
+            throw new IllegalArgumentException("Password are not the same");
         }
         // update the password
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
@@ -86,24 +94,30 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public AppUser saveUser(AppUserDto appUserDto) {
+    public void saveUser(AppUserDto appUserDto) {
         AppUser appUser = appUserMapper.toEntity(appUserDto);
-        return appUserRepository.save(appUser);
-    }
-
-
-    @Override
-    public void updateUserPasswordById(Integer userId, AppUserDto appUserDto) {
-        AppUser appUser = foundUser(userId);
-        appUser.setPassword(appUserDto.password());
-        appUserRepository.save(appUser);
+        appUser.setPassword(passwordEncoder.encode(appUser.getPassword()));
+        AppUser savedUser = appUserRepository.save(appUser);
+        authenticationService.adminCreate(savedUser);
     }
 
     @Override
-    public void updateUser(Integer userId, AppUserDto appUserDto) {
+    public ResUserPrevData getUserPrevDataById(Integer id) {
+        AppUser appUser = foundUser(id);
+        return new ResUserPrevData(appUser.getFirstName(),
+                appUser.getLastName(),
+                appUser.getEmail());
+    }
+
+
+    @CacheEvict(value = "user", key = "#userId") // xoá cache
+    @Override
+    public void updateUser(Integer userId, ChangeDetail changeDetail) {
         AppUser appUser = foundUser(userId);
-        appUser.setEmail(appUserDto.email());
-        appUser.setPassword(appUserDto.password());
+        appUser.setFirstName(changeDetail.firstName());
+        appUser.setLastName(changeDetail.lastName());
+        appUser.setEmail(changeDetail.changeEmailPassWordReq().getNewEmail());
+        adminChangePasswordToAnother(changeDetail.changeEmailPassWordReq().getChangePasswordRequest(), appUser);
         appUserRepository.save(appUser);
     }
 
@@ -116,15 +130,20 @@ public class UserServiceImpl implements UserService {
 
     // chỉ có Admin role mới xoá được
     @Override
-//    @CacheEvict(value = "users", key = "#userId") // xoá cache
+    @CacheEvict(value = "user", key = "#userId") // xoá cache
     public void deleteById(Integer userId) {
         validatorService.checkExistUser(userId);
+        // clean token
+        tokenRepository.deleteByUserId(userId);
         appUserRepository.deleteById(userId);
     }
 
     @Override
-    @Cacheable(value = "userId", key = "#userId") // thêm cache
+//    @CacheEvict(value = "userId",allEntries = true) // thêm cache
     public AppUser findById(Integer userId) {
+        if (userId == null) {
+            return null;
+        }
         return foundUser(userId);
     }
 
@@ -183,6 +202,10 @@ public class UserServiceImpl implements UserService {
     //-------------
     private AppUser foundUser(Integer userId) {
         return appUserRepository.findById(userId).orElseThrow(
-                () -> new ResourceNotFoundException("User with id [%s] is not found : ".formatted(userId)));
+                () -> new ResourceNotFoundException("User with id [%s] is not found ".formatted(userId)));
+    }
+
+    private Optional<AppUser> foundOptionalUser(Integer userId) {
+        return appUserRepository.findById(userId);
     }
 }

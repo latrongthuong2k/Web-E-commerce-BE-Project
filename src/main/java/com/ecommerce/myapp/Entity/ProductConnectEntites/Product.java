@@ -1,6 +1,8 @@
 package com.ecommerce.myapp.Entity.ProductConnectEntites;
 
 import com.ecommerce.myapp.Entity.*;
+import com.ecommerce.myapp.Entity.Bill.Purchases;
+import com.ecommerce.myapp.Entity.Bill.Sales;
 import com.ecommerce.myapp.Entity.Bill.Supplier;
 import com.ecommerce.myapp.Entity.ShopingCart.ProductCartDetail;
 import jakarta.persistence.*;
@@ -153,11 +155,15 @@ public class Product {
     @JoinColumn(name = "category_id")
     private Category category;
 
+
     // Bills không dùng cascade = CascadeType.ALL để lưu data mua bán để tính lời lỗ
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "suppliers_id")
     private Supplier supplier;
 
-
-
+    //---------------- OneToOne ----------------
+    @OneToOne(mappedBy = "product")
+    private Purchases purchases;
+    @OneToOne(mappedBy = "product")
+    private Sales sale;
 }

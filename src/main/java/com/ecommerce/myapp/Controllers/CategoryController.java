@@ -29,7 +29,7 @@ import java.util.Map;
 @RequestMapping("/api/v1/category")
 public class CategoryController {
     private final CategoryService categoryService;
-    private final CacheManager cacheManager;
+//    private final CacheManager cacheManager;
 
     @CacheEvict(value = "categoryPage", allEntries = true)
     @PostMapping("create")

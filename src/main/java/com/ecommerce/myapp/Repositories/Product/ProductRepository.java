@@ -52,13 +52,14 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
             Pageable pageable
     );
 
-    @Query("SELECT new com.ecommerce.myapp.DTO.Product.ProductBasicInfoDTO(p.id, p.productName, p.createdAt, " +
+    @Query("SELECT new com.ecommerce.myapp.DTO.Product.ProductBasicInfoDTO(p.id, p.productName, p.createdAt, p.updatedAt, " +
            "p.inventory.stockQuantity, p.price, p.status) FROM Product p WHERE " +
            "LOWER(p.productName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
-           "CAST(p.price AS string) LIKE LOWER(CONCAT('%', :search, '%'))")
+           "CAST(p.price AS string) LIKE LOWER(CONCAT('%', :search, '%')) or " +
+           "CAST(p.createdAt AS string) LIKE LOWER(CONCAT('%', :search, '%'))")
     Page<ProductBasicInfoDTO> findByProductNameOrCreatedAtOrPrice(@Param("search") String search, Pageable pageable);
 
-    @Query("SELECT new com.ecommerce.myapp.DTO.Product.ProductBasicInfoDTO(p.id, p.productName, p.createdAt, " +
+    @Query("SELECT new com.ecommerce.myapp.DTO.Product.ProductBasicInfoDTO(p.id, p.productName, p.createdAt, p.updatedAt, " +
            "p.inventory.stockQuantity, p.price, p.status) FROM Product p")
     Page<ProductBasicInfoDTO> findAllProduct(Pageable pageable);
 

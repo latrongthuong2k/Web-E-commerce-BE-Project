@@ -19,19 +19,17 @@ public class Purchases {
     @Column(name = "id", nullable = false)
     private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "product_id")
-    private Product productId;
-
     @Column(name = "quantity")
     private Integer quantity;
 
     @Column(name = "purchase_price", nullable = false, precision = 15, scale = 2)
     private BigDecimal purchasePrice;
     //**
-    @ManyToOne(fetch = FetchType.LAZY,optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "bill_id")
-    private Bill bill_Id;
+    private Bill bill;
 
-
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "product_id")
+    private Product product;
 }

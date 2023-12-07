@@ -38,10 +38,21 @@ spring:
         implicit-strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyComponentPathImpl
       # option :  none / validate / create / create-drop / update
       # if not config this jpa.hibernate the default is : create-drop
-      ddl-auto : validate
+      ddl-auto: validate
     # show log database for debug
-    show-sql : true
-    #----------------------------------------------------------------
+    show-sql: true
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${USERNAME_EMAIL}
+    password: ${PASSWORD_EMAIL}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+  #----------------------------------------------------------------
   security:
     oauth2:
       client:

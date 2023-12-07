@@ -27,7 +27,10 @@ public record AppUserDto(
         @Pattern(message = "Password must have a capital letter and at least one special character",
                 regexp = "^(?=.*[A-Z])(?=.*[@#$%^&+=!]).+$")
         @NotBlank(message = "password cannot be blank")
-        String password
+        String password,
+
+        @NotNull
+        String role
 
 ) implements Serializable {
 }

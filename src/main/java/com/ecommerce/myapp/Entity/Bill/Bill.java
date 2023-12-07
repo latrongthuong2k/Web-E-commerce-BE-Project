@@ -1,5 +1,6 @@
 package com.ecommerce.myapp.Entity.Bill;
 
+import com.ecommerce.myapp.Users.Entity.AppUser;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,8 +8,8 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Entity
@@ -23,33 +24,34 @@ public class Bill {
 
     @CreatedDate
     @Column(name = "create_date", nullable = false)
-    private LocalDateTime createDate;
+    private LocalDateTime createdDate;
 
     @Column(name = "approve_date")
-    private LocalDateTime approveDate;
+    private LocalDateTime approvedDate;
 
     @CreatedBy
     @Column(name = "create_by", nullable = false)
-    private Integer createBy;
+    private Integer createdBy;
 
     @Column(name = "approve_by")
-    private Integer approveBy;
-
-    @Column(name = "quantity")
-    private Integer quantity;
-
-    @Column(name = "sale_price",nullable = false, precision = 15, scale = 2)
-    private BigDecimal purchasePrice;
+    private Integer approvedBy;
 
     // Status
     @Enumerated(EnumType.STRING)
     @Column(name = "bill_status")
     private BillStatus billStatus;
 
-    //**
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "bill_id")
-    private Bill bill_Id;
+    @OneToMany(mappedBy = "bill")
+    private List<Purchases> purchases;
+
+    @OneToMany(mappedBy = "bill_Id")
+    private List<Sales> sales;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "app_user_id")
+    private AppUser appUser;
+
+
 
 
 }

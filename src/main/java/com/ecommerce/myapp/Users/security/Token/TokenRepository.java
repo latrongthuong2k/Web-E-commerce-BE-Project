@@ -27,10 +27,13 @@ public interface TokenRepository extends JpaRepository<Token, Integer> {
 
     Optional<Token> findByToken(String token);
 
-    @Transactional
     @Modifying
     @Query( value = """
             DELETE FROM Token t WHERE  (t.expired = true or t.revoked = true )\s
             """)
     void deleteExpiredTokens();
+
+    @Modifying
+    @Query("delete from Token tk where tk.user.id = ?1")
+    void deleteByUserId(Integer userId);
 }

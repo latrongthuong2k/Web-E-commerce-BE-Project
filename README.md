@@ -30,6 +30,8 @@ Ecommerce Back-end APIは、オンラインショッピングウェブサイト�
 1. GitHubのリポジトリからプロジェクトをクローン：
    ```bash
    git clone https://github.com/latrongthuong2k/WebE-commerce2.git
+3. Database import：
+   ***sql-scripts***　folder を開けて、データベースを作成ために　***v2-db.sql***　を使ってください。
 2. Mavenでプロジェクトを実行：
    ```bash
    mvn spring-boot:run
