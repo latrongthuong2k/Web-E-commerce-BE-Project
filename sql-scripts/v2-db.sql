@@ -498,7 +498,7 @@ INSERT INTO `products` VALUES (49,'2023-11-29 18:56:33.706876',16,0,'adadadad',N
 UNLOCK TABLES;
 
 --
--- Table structure for table `purchases`
+-- Table structure for table `sales`
 --
 
 DROP TABLE IF EXISTS `purchases`;
@@ -519,7 +519,7 @@ CREATE TABLE `purchases` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `purchases`
+-- Dumping data for table `sales`
 --
 
 LOCK TABLES `purchases` WRITE;

@@ -16,7 +16,7 @@ aws:
   region: ap-northeast-1
   s3:
     buckets:
-      term-bucket: term-bucket-product
+      categoryBucket: category-bucket-ecommerce
       product: next-app-ecommerce
       #user: next-app-ecommerce
   credentials:

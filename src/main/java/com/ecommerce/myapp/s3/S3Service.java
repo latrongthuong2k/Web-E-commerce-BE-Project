@@ -11,8 +11,6 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 public class S3Service {
@@ -60,31 +58,13 @@ public class S3Service {
      * @param keys       keys of image
      * @return Map of each image with key
      */
-    public Map<String, String> getObjects(String bucketName, List<String> keys) {
-        return keys.stream()
-                .collect(Collectors.toMap(
-                        key -> key,
-                        key -> String.format("https://%s.s3.amazonaws.com/%s", bucketName, key)
-                ));
+    public List<String> getObjects(String bucketName, List<String> keys) {
+        return keys.stream().map(key -> String.format("https://%s.s3.amazonaws.com/%s", bucketName, key)).toList();
     }
-//    public Map<String, byte[]> getObjects(String bucketName, List<String> keys) {
-//        Map<String, byte[]> resultMap = new HashMap<>();
-//        for (String key : keys) {
-//            GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-//                    .bucket(bucketName)
-//                    .key(key)
-//                    .build();
-//            ResponseInputStream<GetObjectResponse> res = s3.getObject(getObjectRequest);
-//            try {
-//                byte[] data = res.readAllBytes();
-//                resultMap.put(key, data);
-//            } catch (IOException e) {
-//                throw new RuntimeException(String.format("Failed to get object with key %s", key), e);
-//            }
-//        }
-//        return resultMap;
-//    }
 
+    public String getObjectUrl(String bucketName, String key) {
+        return String.format("https://%s.s3.amazonaws.com/%s", bucketName, key);
+    }
 
     /**
      * Deletes an object from S3
@@ -93,7 +73,6 @@ public class S3Service {
      * @param key        The key of the object to delete
      */
     public void deleteObject(String bucketName, String key) {
-        System.out.println(key);
         DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
                 .bucket(bucketName)
                 .key(key)

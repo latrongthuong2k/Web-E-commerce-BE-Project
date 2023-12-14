@@ -10,11 +10,11 @@ import org.springframework.context.annotation.Configuration;
 public class S3Buckets {
 
     private String product;
-    private String termBucket;
+    private String categoryBucket;
     public void setProduct(String product) {
         this.product = product;
     }
-    public void setTermBucket(String termBucket) {
-        this.termBucket = termBucket;
+    public void setCategoryBucket(String categoryBucket) {
+        this.categoryBucket = categoryBucket;
     }
 }

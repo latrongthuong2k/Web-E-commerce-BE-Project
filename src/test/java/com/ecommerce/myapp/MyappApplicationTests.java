@@ -1,6 +1,6 @@
 package com.ecommerce.myapp;
 
-import com.ecommerce.myapp.Users.Service.UserService;
+import com.ecommerce.myapp.services.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

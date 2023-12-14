@@ -16,9 +16,9 @@ aws:
   region: ap-northeast-1
   s3:
     buckets:
-      term-bucket: term-bucket-product
       product: next-app-ecommerce
       #user: next-app-ecommerce
+      category-bucket: category-bucket-ecommerce
   credentials:
     accessKeyId: ${AWS_ACCESS_KEY_ID}
     secretKey: ${AWS_SECRET_KEY}
