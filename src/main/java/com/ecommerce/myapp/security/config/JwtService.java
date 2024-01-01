@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 @Service
-public class JwtService  {
+public class JwtService {
 
     @Value("${application.security.jwt.secret-key}")
     private String secretKey;
@@ -26,11 +26,11 @@ public class JwtService  {
     @Value("${application.security.jwt.refresh-token.expiration}")
     private long refreshExpiration;
 
-    public String extractUsername(String token) throws JwtException{
+    public String extractUsername(String token) throws JwtException {
         return extractClaim(token, Claims::getSubject);
     }
 
-    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) throws JwtException  {
+    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) throws JwtException {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }

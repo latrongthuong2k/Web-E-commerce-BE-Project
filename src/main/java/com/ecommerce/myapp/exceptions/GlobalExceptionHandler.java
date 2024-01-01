@@ -10,6 +10,7 @@ import org.springframework.security.authentication.InsufficientAuthenticationExc
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
@@ -41,175 +42,58 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(validErrorRes);
     }
 
-    /**
-     * Handles the EntityNotFoundException exception and returns a ResponseEntity with
-     * status 404 (Not Found) and the exception's message as the response body.
-     *
-     * @param ex the EntityNotFoundException instance
-     * @return a ResponseEntity with status 404 and the exception's message
-     */
-    @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<String> handleEntityNotFoundException(EntityNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+
+//    @ExceptionHandler({IllegalAccessException.class,
+//            IllegalArgumentException.class})
+//    public ResponseEntity<ApiError> handleForbiddenExceptions(Exception ex, WebRequest request) {
+//        return buildResponseEntity(HttpStatus.FORBIDDEN, ex, request);
+//    }
+
+    @ExceptionHandler({IllegalAccessException.class, IllegalArgumentException.class, MissingServletRequestParameterException.class})
+    public ResponseEntity<ApiError> handleBadRequestExceptions(Exception ex, WebRequest request) {
+        return buildResponseEntity(HttpStatus.BAD_REQUEST, ex, request);
     }
 
-    /**
-     * Handles the InsufficientAuthenticationException exception and returns a ResponseEntity with
-     * status 403 (Forbidden), the exception's message as the response body, and additional error details.
-     *
-     * @param ex      the InsufficientAuthenticationException instance
-     * @param request the WebRequest object to obtain the error details from
-     * @return a ResponseEntity with status 403, the exception's message, and additional error details
-     */
-    @ExceptionHandler(InsufficientAuthenticationException.class)
-    public ResponseEntity<ApiError> handleException(InsufficientAuthenticationException ex,
-                                                    WebRequest request) {
-
-        ApiError apiError = new ApiError(
-                HttpStatus.FORBIDDEN.value(),
-                ex.getMessage(),
-                request.getDescription(false),
-                LocalDateTime.now()
-        );
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(apiError);
+    @ExceptionHandler({DuplicateResourceException.class, IllegalStateException.class})
+    public ResponseEntity<ApiError> handleConflictExceptions(Exception ex, WebRequest request) {
+        return buildResponseEntity(HttpStatus.CONFLICT, ex, request);
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ApiError> handleException(IllegalArgumentException ex,
-                                                    WebRequest request) {
-
-        ApiError apiError = new ApiError(
-                HttpStatus.BAD_REQUEST.value(),
-                ex.getMessage(),
-                request.getDescription(false),
-                LocalDateTime.now()
-        );
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(apiError);
-    }
-    @ExceptionHandler(MessagingException.class)
-    public ResponseEntity<ApiError> handleMessagingException(MessagingException ex, WebRequest request) {
-        ApiError apiError = new ApiError(
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                ex.getMessage(),
-                request.getDescription(false),
-                LocalDateTime.now()
-        );
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(apiError);
+    @ExceptionHandler({InvalidTokenException.class, ResourceNotFoundException.class, EntityNotFoundException.class})
+    public ResponseEntity<ApiError> handleNotFoundExceptions(Exception ex, WebRequest request) {
+        return buildResponseEntity(HttpStatus.NOT_FOUND, ex, request);
     }
 
-    @ExceptionHandler(DuplicateResourceException.class)
-    public ResponseEntity<ApiError> handleDuplicateResourceException(DuplicateResourceException ex, WebRequest request) {
-        ApiError apiError = new ApiError(
-                HttpStatus.CONFLICT.value(),
-                ex.getMessage(),
-                request.getDescription(false),
-                LocalDateTime.now()
-        );
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(apiError);
-    }
-    @ExceptionHandler(InvalidTokenException.class)
-    public ResponseEntity<ApiError> handleInvalidTokenException(InvalidTokenException ex, WebRequest request) {
-        ApiError apiError = new ApiError(
-                HttpStatus.NOT_FOUND.value(),
-                ex.getMessage(),
-                request.getDescription(false),
-                LocalDateTime.now()
-        );
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(apiError);
+    @ExceptionHandler({MessagingException.class, EmailSendingException.class})
+    public ResponseEntity<ApiError> handleInternalServerErrorExceptions(Exception ex, WebRequest request) {
+        return buildResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR, ex, request);
     }
 
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ApiError> handleResourceNotFoundException(ResourceNotFoundException ex, WebRequest request) {
-        ApiError apiError = new ApiError(
-                HttpStatus.NOT_FOUND.value(),
-                ex.getMessage(),
-                request.getDescription(false),
-                LocalDateTime.now()
-        );
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(apiError);
+    @ExceptionHandler({InsufficientAuthenticationException.class,
+            AuthenticationException.class, JwtException.class, BadCredentialsException.class})
+    public ResponseEntity<ApiError> handleAuthExceptions(Exception ex, WebRequest request) {
+        return buildResponseEntity(HttpStatus.UNAUTHORIZED, ex, request);
     }
 
-    @ExceptionHandler(EmailSendingException.class)
-    public ResponseEntity<ApiError> handleEmailSendingException(EmailSendingException ex, WebRequest request) {
-        ApiError apiError = new ApiError(
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                ex.getMessage(),
-                request.getDescription(false),
-                LocalDateTime.now()
-        );
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(apiError);
-    }
-
-    @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<ApiError> handleException(AuthenticationException ex,
-                                                    WebRequest request) {
-        ApiError apiError = new ApiError(
-                HttpStatus.FORBIDDEN.value(),
-                ex.getMessage(),
-                request.getDescription(false),
-                LocalDateTime.now()
-        );
-
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(apiError);
-    }
-
-    @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<ApiError> handleException(BadCredentialsException ex,
-                                                    WebRequest request) {
-        ApiError apiError = new ApiError(
-                HttpStatus.UNAUTHORIZED.value(),
-                ex.getMessage(),
-                request.getDescription(false),
-                LocalDateTime.now()
-        );
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(apiError);
-    }
-    @ExceptionHandler(IllegalAccessException.class)
-    public ResponseEntity<ApiError> handleException(IllegalAccessException ex,
-                                                    WebRequest request) {
-        ApiError apiError = new ApiError(
-                HttpStatus.FORBIDDEN.value(),
-                ex.getMessage(),
-                request.getDescription(false),
-                LocalDateTime.now()
-        );
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(apiError);
-    }
-
-
-    @ExceptionHandler(JwtException.class)
-    public ResponseEntity<ApiError> handleException(JwtException ex,
-                                                    WebRequest request) {
-        ApiError apiError = new ApiError(
-                HttpStatus.UNAUTHORIZED.value(),
-                ex.getMessage(),
-                request.getDescription(false),
-                LocalDateTime.now()
-        );
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(apiError);
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ApiError> handleMethodNotSupportedException(HttpRequestMethodNotSupportedException ex, WebRequest request) {
+        return buildResponseEntity(HttpStatus.METHOD_NOT_ALLOWED, ex, request);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleException(Exception ex,
                                                     WebRequest request) {
+        return buildResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR, ex, request);
+    }
+
+    private ResponseEntity<ApiError> buildResponseEntity(HttpStatus status, Exception ex, WebRequest request) {
         ApiError apiError = new ApiError(
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                status.value(),
                 ex.getMessage(),
                 request.getDescription(false),
                 LocalDateTime.now()
         );
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(apiError);
-    }
-
-
-//    @ExceptionHandler(AccessDeniedException.class)
-//    public ResponseEntity<String> handleAccessDeniedException(AccessDeniedException ex) {
-//        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
-//    }
-
-    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
-    public ResponseEntity<String> handleMethodNotSupportedException(HttpRequestMethodNotSupportedException ex) {
-        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(ex.getMessage());
+        return ResponseEntity.status(status).body(apiError);
     }
 
 }

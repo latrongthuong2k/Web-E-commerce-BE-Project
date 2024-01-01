@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class RateLimitedController {
 
     private final Bucket bucket;
+
     public RateLimitedController(Bucket bucket) {
         this.bucket = bucket;
     }

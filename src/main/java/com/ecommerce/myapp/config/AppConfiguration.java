@@ -1,8 +1,8 @@
 package com.ecommerce.myapp.config;
 
 
-import com.ecommerce.myapp.services.app.AppAuditAwareService;
 import com.ecommerce.myapp.repositories.AppUserRepository;
+import com.ecommerce.myapp.services.app.AppAuditAwareService;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.Refill;
@@ -29,16 +29,17 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AppConfiguration {
 
-    private final AppUserRepository repository;
+    private final AppUserRepository appUserRepository;
 
+    // tự động lấy userName từ
     @Bean
     public UserDetailsService userDetailsService() {
-        return username -> repository.findByEmail(username)
+        return username -> appUserRepository.findByUserNameOrEmail(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 
 
-    // tìm nạp từ interface user-detail và băm pass
+    //     tìm nạp từ interface user-detail và băm pass
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
@@ -48,7 +49,7 @@ public class AppConfiguration {
     }
 
     @Bean
-    public AuditorAware<Integer> auditorAware(AppUserRepository appUserRepository) {
+    public AuditorAware<Long> auditorAware(AppUserRepository appUserRepository) {
         return new AppAuditAwareService(appUserRepository);
     }
 
@@ -56,6 +57,7 @@ public class AppConfiguration {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -65,8 +67,8 @@ public class AppConfiguration {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 //        configuration.setAllowedOrigins(List.of("https://web-admin-ecommerce-project.vercel.app"));
-//        configuration.setAllowedOrigins(List.of("https://http://localhost:3000"));
-        configuration.setAllowedOriginPatterns(List.of("*")); // Cho phép domain của FE
+//        configuration.setAllowedOrigins(List.of("http://localhost:3000"));
+        configuration.setAllowedOriginPatterns(List.of("http://localhost:3000")); // Cho phép domain của FE
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE")); // Thêm OPTIONS cho preflight
         configuration.setAllowedHeaders(List.of("Authorization", "Cache-Control", "Content-Type"));
         configuration.setExposedHeaders(List.of("*"));

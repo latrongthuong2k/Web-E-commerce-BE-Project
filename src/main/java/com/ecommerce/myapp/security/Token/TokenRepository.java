@@ -1,5 +1,6 @@
 package com.ecommerce.myapp.security.Token;
 
+import com.ecommerce.myapp.model.user.AppUser;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -12,10 +13,10 @@ public interface TokenRepository extends JpaRepository<Token, Integer> {
 
     @Query(value = """
             select t from Token t inner join AppUser u\s
-            on t.user.id = u.id\s
-            where u.id = :id and (t.expired = false or t.revoked = false)\s
+            on t.user.userId = u.userId\s
+            where u.userId = ?1 and (t.expired = false or t.revoked = false)\s
             """)
-    List<Token> findAllValidTokenByUser(Integer id);
+    List<Token> findAllValidTokenByUser(Long id);
 
 
     @Query(value = """
@@ -27,12 +28,14 @@ public interface TokenRepository extends JpaRepository<Token, Integer> {
     Optional<Token> findByToken(String token);
 
     @Modifying
-    @Query( value = """
+    @Query(value = """
             DELETE FROM Token t WHERE  (t.expired = true or t.revoked = true )\s
             """)
     void deleteExpiredTokens();
 
     @Modifying
-    @Query("delete from Token tk where tk.user.id = ?1")
-    void deleteByUserId(Integer userId);
+    @Query("delete from Token tk where tk.user.userId = ?1")
+    void deleteByUserId(Long userId);
+
+    Token findByUser(AppUser appUser);
 }

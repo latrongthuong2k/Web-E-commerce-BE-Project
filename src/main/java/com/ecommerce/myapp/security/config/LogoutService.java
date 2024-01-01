@@ -1,6 +1,6 @@
 package com.ecommerce.myapp.security.config;
 
-import com.ecommerce.myapp.security.Auth.AuthenticationControllerV2;
+import com.ecommerce.myapp.security.Auth.AuthenticationController;
 import com.ecommerce.myapp.security.Token.TokenRepository;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 public class LogoutService implements LogoutHandler {
 
     private final TokenRepository tokenRepository;
+
     @Override
     public void logout(
             HttpServletRequest request,
@@ -22,7 +23,7 @@ public class LogoutService implements LogoutHandler {
             Authentication authentication
     ) {
 
-      String cookieJwt = AuthenticationControllerV2.getCookieByName(request, "auth-token");
+        String cookieJwt = AuthenticationController.getCookieByName(request, "auth-token");
         var storedToken = tokenRepository.findByToken(cookieJwt)
                 .orElse(null);
         if (storedToken != null) {
@@ -32,7 +33,7 @@ public class LogoutService implements LogoutHandler {
         }
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
-        Cookie cookie = new Cookie("auth-token" ,"");
+        Cookie cookie = new Cookie("auth-token", "");
         cookie.setHttpOnly(true);
         cookie.setSecure(true); // HTTPS
         cookie.setPath("/");

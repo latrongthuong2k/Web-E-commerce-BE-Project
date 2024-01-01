@@ -1,7 +1,9 @@
 package com.ecommerce.myapp.model.user;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -9,18 +11,20 @@ import lombok.NoArgsConstructor;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @Table(name = "user_images")
 public class UserImage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
-    private Integer id;
+    private Long id;
 
     @Column(name = "user_image_key", nullable = false)
     private String Key;
 
-    @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id",foreignKey = @ForeignKey(name = "user_id_image_fk"))
-    private AppUser userId;
+    @JsonIgnore
+    @OneToOne
+    @JoinColumn(name = "user_id", foreignKey = @ForeignKey(name = "user_id_image_fk"))
+    private AppUser appUser;
 
 }

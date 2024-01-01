@@ -54,7 +54,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         // Authentication path bypass logic
-        if (request.getServletPath().contains("/api/v1/auth")) {
+        if (request.getServletPath().contains("/api/v1/auth") || request.getServletPath().contains("/api/v1/client")) {
             filterChain.doFilter(request, response);
             return;
             // Quan trọng: Dừng xử lý nếu đang xử lý đường dẫn xác thực

@@ -1,132 +1,1 @@
-package com.ecommerce.myapp.model.user;
-
-import com.ecommerce.myapp.model.Review;
-import com.ecommerce.myapp.model.ShippingAddress;
-import com.ecommerce.myapp.model.WishList;
-import com.ecommerce.myapp.model.bill.Bill;
-import com.ecommerce.myapp.model.client.Cart;
-import com.ecommerce.myapp.security.Token.Token;
-import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-@Data
-@Entity
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-@Table(name = "users")
-@EntityListeners(AuditingEntityListener.class)
-public class AppUser implements UserDetails {
-
-    // id user
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
-    private Integer id;
-
-    @Column(name = "first_Name", nullable = false)
-    private String firstName;
-
-    @Column(name = "last_Name", nullable = false)
-    private String lastName;
-
-    // Cột email
-    @Column(name = "email", unique = true, nullable = false)
-    private String email;
-
-    // Cột password
-    @Column(name = "password", unique = true, nullable = false)
-    private String password;
-
-    // Thời điểm tạo
-    @CreatedDate
-    @Column(name = "created_at", updatable = false, nullable = false)
-    private LocalDateTime createdAt;
-
-    // Thời điểm update
-    @LastModifiedDate
-    @Column(name = "update_at", insertable = false)
-    private LocalDateTime updateAt;
-
-    @Column(name = "status", nullable = false)
-    private Boolean status;
-
-    //---------------- OneToMany ----------------
-
-    @OneToMany(mappedBy = "appUser", cascade = CascadeType.ALL)
-    private List<Bill> bills = new ArrayList<>();
-
-    @OneToMany(mappedBy = "appUser", cascade = CascadeType.ALL)
-    private List<Review> reviews = new ArrayList<>();
-
-    @OneToMany(mappedBy = "user")
-    private List<ShippingAddress> shippingAddresses = new ArrayList<>();
-
-    @OneToOne(mappedBy = "userId")
-    private UserImage userImage;
-
-    //---------------- OneToOne ----------------
-
-    @OneToOne(mappedBy = "appUser", cascade = CascadeType.ALL)
-    private Cart cart;
-    @OneToOne(mappedBy = "appUser", cascade = CascadeType.ALL)
-    private WishList wishLists;
-
-
-    // impl các phương thức Authenticate
-
-    @Enumerated(EnumType.STRING)
-    private Role role;
-
-    @OneToMany(mappedBy = "user")
-    private List<Token> tokens;
-
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return role.getAuthorities();
-    }
-
-    @Override
-    public String getPassword() {
-        return password;
-    }
-
-    @Override
-    public String getUsername() {
-        return email;
-    }
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return true;
-    }
-}
+package com.ecommerce.myapp.model.user;import com.ecommerce.myapp.model.checkoutGroup.Order;import com.ecommerce.myapp.model.client.ProductWish;import com.ecommerce.myapp.model.client.ShoppingCart;import com.ecommerce.myapp.model.client.UserAddress;import com.ecommerce.myapp.security.Token.Token;import jakarta.persistence.*;import lombok.AllArgsConstructor;import lombok.Builder;import lombok.Data;import lombok.NoArgsConstructor;import org.springframework.data.annotation.CreatedDate;import org.springframework.data.annotation.LastModifiedDate;import org.springframework.data.jpa.domain.support.AuditingEntityListener;import org.springframework.security.core.GrantedAuthority;import org.springframework.security.core.userdetails.UserDetails;import java.time.LocalDateTime;import java.util.Collection;import java.util.HashSet;import java.util.Set;@Data@Entity@NoArgsConstructor@AllArgsConstructor@Builder@Table(name = "users")@EntityListeners(AuditingEntityListener.class)public class AppUser implements UserDetails {    // id user    @Id    @GeneratedValue(strategy = GenerationType.IDENTITY)    @Column(name = "user_id", nullable = false)    private Long userId;    @Column(name = "user_name", length = 100, unique = true, nullable = false)    private String userName;    @Column(name = "email", unique = true, nullable = false)    private String email;    @Column(name = "full_name", length = 100, nullable = false)    private String fullName;    // Cột password    @Column(name = "password", unique = true, nullable = false)    private String password;    @Column(name = "phone", length = 15, unique = true)    private String phone;    @Enumerated(EnumType.STRING)    @Column(name = "gender")    private Gender gender;    @CreatedDate    @Column(name = "created_at", updatable = false, nullable = false)    private LocalDateTime createdAt;    @LastModifiedDate    @Column(name = "update_at", insertable = false)    private LocalDateTime updateAt;    @Column(name = "status", nullable = false)    private Boolean status;    @Enumerated(EnumType.STRING)    private Role role;    // One to many    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)    private Set<Token> tokens = new HashSet<>();    @OneToMany(mappedBy = "appUser", cascade = CascadeType.ALL, orphanRemoval = true)    private Set<Order> orders = new HashSet<>();    @OneToMany(mappedBy = "appUser", cascade = CascadeType.ALL, orphanRemoval = true)    private Set<UserAddress> userAddresses = new HashSet<>();    @OneToMany(mappedBy = "appUser", cascade = CascadeType.ALL, orphanRemoval = true)    private Set<ProductWish> productWish = new HashSet<>();    // One to One (EAGER)    @OneToMany(mappedBy = "appUser",fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)    private Set<ShoppingCart> shoppingCart = new HashSet<>();//    @OneToOne(mappedBy = "appUser", cascade = CascadeType.ALL, orphanRemoval = true)//    private UserImage userImage;    @Override    public Collection<? extends GrantedAuthority> getAuthorities() {        return role.getAuthorities();    }    @Override    public String getPassword() {        return password;    }    @Override    public String getUsername() {        return email;    }    @Override    public boolean isAccountNonExpired() {        return true;    }    @Override    public boolean isAccountNonLocked() {        return true;    }    @Override    public boolean isCredentialsNonExpired() {        return true;    }    @Override    public boolean isEnabled() {        return true;    }    public void addAddress(UserAddress address) {        userAddresses.add(address);        address.setAppUser(this);    }    public void removeAddress(UserAddress address) {        userAddresses.remove(address);        address.setAppUser(this);    }}

@@ -1,10 +1,12 @@
 package com.ecommerce.myapp.config;
 
 import com.ecommerce.myapp.model.user.Permission;
+import com.ecommerce.myapp.security.Token.TokenService;
 import com.ecommerce.myapp.security.config.JwtAuthenticationFilter;
-import com.ecommerce.myapp.security.oauth2.CustomAuthenticationSuccessHandler;
+import com.ecommerce.myapp.security.oauth2.Auth2SuccessHandler;
 import com.ecommerce.myapp.security.oauth2.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -28,17 +30,21 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfiguration {
-
-    private static final String[] WHITE_LIST_URL = {
-            "/api/v1/auth/**",
-            "/api/v2/auth/**",
-            "api/v1/client/**"
-    };
     private final LogoutHandler logoutHandler;
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final AuthenticationProvider authenticationProvider;
     private final CustomOAuth2UserService customOAuth2UserService;
-    private final CustomAuthenticationSuccessHandler successHandler;
+    private final Auth2SuccessHandler Auth2SuccessHandler;
+    private final TokenService tokenService;
+
+
+    private static final String[] WHITE_LIST_URL = {
+            "/api/v1/auth/**",
+            "/api/v1/client/**"
+    };
+
+    @Value("${FE_BASE_URL}")
+    private String feBaseUrl;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -46,8 +52,8 @@ public class SecurityConfiguration {
                 .csrf(AbstractHttpConfigurer::disable)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(req ->
-                        req.requestMatchers(WHITE_LIST_URL)
-                                .permitAll()
+                        req
+                                .requestMatchers(WHITE_LIST_URL).permitAll()
                                 .requestMatchers("/api/v1/management/**").hasAnyRole(ADMIN.name(), MANAGER.name())
                                 .requestMatchers(GET, "/api/v1/management/**").hasAnyAuthority(
                                         Permission.ADMIN_READ.name(), Permission.MANAGER_READ.name())
@@ -57,26 +63,44 @@ public class SecurityConfiguration {
                                         Permission.ADMIN_UPDATE.name(), Permission.MANAGER_UPDATE.name())
                                 .requestMatchers(DELETE, "/api/v1/management/**").hasAnyAuthority(
                                         Permission.ADMIN_DELETE.name(), Permission.MANAGER_DELETE.name())
-                                .anyRequest()
-                                .authenticated()
+                                .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
                 .authenticationProvider(authenticationProvider)
                 .cors(Customizer.withDefaults())
+//                .formLogin(loginConfig -> {
+//                    loginConfig.loginPage("http://localhost:3000/auth/login")
+//                            .loginProcessingUrl("/api/v1/auth/sign-in")
+//                            .successHandler((request, response, authentication) -> {
+//                                AppUser appUser = (AppUser) authentication.getPrincipal();
+//                                Token token = tokenService.findByUser(appUser);
+//                                Cookie tokenCookie = new Cookie("auth-token", token.getToken());
+//                                tokenCookie.setHttpOnly(true);
+//                                tokenCookie.setSecure(true);
+//                                tokenCookie.setPath("/");
+//                                tokenCookie.setMaxAge(7 * 24 * 60 * 60);
+//                                response.addCookie(tokenCookie);
+//                                response.sendRedirect("http://localhost:3000");
+//                                response.setStatus(HttpServletResponse.SC_OK);
+//                            })
+//                            .failureHandler((request, response, exception) -> {
+//                                System.out.println(STR."Đăng nhập thất bại: \{exception.getMessage()}");
+//                                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+//                            });
+//                })
                 .oauth2Login(oauth2Login ->
                         oauth2Login
                                 .userInfoEndpoint(userInfo ->
                                         userInfo.userService(customOAuth2UserService)
-                                ).successHandler(successHandler)
+                                ).successHandler(Auth2SuccessHandler)
                 )
                 .logout(logout ->
-                                logout.logoutUrl("/api/v1/auth/logout")
-                                        .addLogoutHandler(logoutHandler)
-                                        .logoutSuccessHandler((request, response, authentication) -> {
-                                            response.sendRedirect("https://web-admin-ecommerce-project.vercel.app");
-                                            SecurityContextHolder.clearContext();
-                                        })
-                        //.logoutSuccessUrl("http://localhost:3000")
+                        logout.logoutUrl("/api/v1/auth/logout")
+                                .addLogoutHandler(logoutHandler)
+                                .logoutSuccessHandler((request, response, authentication) -> {
+                                    SecurityContextHolder.clearContext();
+                                })
+                                .logoutSuccessUrl("http://localhost:3000")
                 );
         return http.build();
     }

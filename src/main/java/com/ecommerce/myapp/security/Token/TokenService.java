@@ -1,5 +1,6 @@
 package com.ecommerce.myapp.security.Token;
 
+import com.ecommerce.myapp.model.user.AppUser;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -17,5 +18,9 @@ public class TokenService {
             tokenRepository.deleteExpiredTokens();
         }
 
+    }
+
+    public Token findByUser(AppUser appUser) {
+        return tokenRepository.findByUser(appUser);
     }
 }

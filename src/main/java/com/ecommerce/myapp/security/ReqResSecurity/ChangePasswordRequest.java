@@ -13,7 +13,7 @@ import lombok.Setter;
 public class ChangePasswordRequest {
 
     private String currentPassword;
-    @Size(message = "maximum limit character for password is 50", max = 50)
+    @Size(message = "maximum limit character for password is 255", max = 255)
     @Pattern(message = "Password must have a capital letter and at least one special character",
             regexp = "^(?=.*[A-Z])(?=.*[@#$%^&+=!]).+$")
     @NotBlank(message = "password cannot be blank")

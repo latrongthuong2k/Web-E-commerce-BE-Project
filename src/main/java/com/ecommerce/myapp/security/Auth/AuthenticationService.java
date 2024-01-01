@@ -1,9 +1,8 @@
 package com.ecommerce.myapp.security.Auth;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ecommerce.myapp.model.user.AppUser;
-import com.ecommerce.myapp.repositories.AppUserRepository;
 import com.ecommerce.myapp.model.user.Role;
+import com.ecommerce.myapp.repositories.AppUserRepository;
 import com.ecommerce.myapp.security.ReqResSecurity.AuthenticationRequest;
 import com.ecommerce.myapp.security.ReqResSecurity.AuthenticationResponse;
 import com.ecommerce.myapp.security.ReqResSecurity.RegisterRequest;
@@ -11,12 +10,15 @@ import com.ecommerce.myapp.security.Token.Token;
 import com.ecommerce.myapp.security.Token.TokenRepository;
 import com.ecommerce.myapp.security.Token.TokenType;
 import com.ecommerce.myapp.security.config.JwtService;
-import jakarta.servlet.http.Cookie;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
-import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -26,75 +28,70 @@ import java.io.IOException;
 @Service
 @RequiredArgsConstructor
 public class AuthenticationService {
-    private final AppUserRepository repository;
+    private final AppUserRepository appUserRepository;
     private final TokenRepository tokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
-    private final AuthenticationManager authenticationManager;
+    private final UserAuthenticationManager userAuthenticationManager;
 
-    public AuthenticationResponse register(RegisterRequest request) {
+    @Value("${FE_BASE_URL}")
+    private String feBaseUrl;
+
+    public AuthenticationResponse register(RegisterRequest request) throws IOException {
         var user = AppUser.builder()
-                .firstName(request.getFirstname())
-                .lastName(request.getLastname())
+                .userName(request.getUserName())
                 .email(request.getEmail())
-                .status(true)
                 .password(passwordEncoder.encode(request.getPassword()))
-                .role(Role.ADMIN) //**
+                .fullName(request.getFullName())
+                .gender(request.getGender())
+                .role(Role.USER) //**
+                .status(true)
                 .build();
-        var savedUser = repository.save(user);
+        var savedUser = appUserRepository.save(user);
         var jwtToken = jwtService.generateToken(user);
+        var refreshToken = jwtService.generateRefreshToken(user);
+        // add cookie
         saveUserToken(savedUser, jwtToken);
-        return AuthenticationResponse.builder()
+        return  AuthenticationResponse.builder()
                 .accessToken(jwtToken)
+                .refreshToken(refreshToken)
                 .build();
     }
+
+
     public void adminCreate(AppUser user) {
-        var savedUser = repository.save(user);
+        var savedUser = appUserRepository.save(user);
         var jwtToken = jwtService.generateToken(user);
         saveUserToken(savedUser, jwtToken);
     }
 
-//    public AuthenticationResponse authenticate(AuthenticationRequest request) {
-//        authenticationManager.authenticate(
-//                new UsernamePasswordAuthenticationToken(
-//                        request.getEmail(),
-//                        request.getPassword()
-//                )
-//        );
-//        var user = repository.findByEmail(request.getEmail())
-//                .orElseThrow();
-//        var refreshToken = jwtService.generateRefreshToken(user);
-//        revokeAllUserTokens(user);
-//        saveUserToken(user, refreshToken);
-//        return AuthenticationResponse.builder()
-//                .accessToken(refreshToken)
-//                .build();
-//    }
-public void authenticate(AuthenticationRequest request, HttpServletResponse response) {
-    authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(
-                    request.getEmail(),
-                    request.getPassword()
-            )
-    );
-    var user = repository.findByEmail(request.getEmail())
-            .orElseThrow();
-    var refreshToken = jwtService.generateRefreshToken(user);
-    revokeAllUserTokens(user);
-    saveUserToken(user, refreshToken);
+    public AuthenticationResponse authenticate(AuthenticationRequest request)  {
+        try {
+            userAuthenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getEmail(),
+                            request.getPassword()
+                    )
+            );
+        } catch (BadCredentialsException e) {
+            throw new BadCredentialsException("Username or password is not correct !");
+        } catch (DisabledException e) {
+            throw new DisabledException("Tài khoản này đã bị vô hiệu hóa.");
+        } catch (Exception e) {
+            throw new AuthenticationCredentialsNotFoundException(STR."Đã xảy ra lỗi khi xác thực: \{e.getMessage()}");
+        }
 
-    Cookie cookie = new Cookie("auth-token", refreshToken);
-    cookie.setHttpOnly(true);
-    // Thiết lập đường dẫn mà cookie sẽ được gửi
-    cookie.setPath("/");
-    response.addCookie(cookie);
-
-    response.setStatus(HttpServletResponse.SC_OK);
-}
+        var user = appUserRepository.findByUserNameOrEmail(request.getEmail())
+                .orElseThrow(() -> new BadCredentialsException("Email or password is not correct !"));
+        var jwtToken = jwtService.generateToken(user);
+        var refreshToken = jwtService.generateRefreshToken(user);
+        revokeAllUserTokens(user);
+        saveUserToken(user, jwtToken);
+        return AuthenticationResponse.builder().accessToken(jwtToken).refreshToken(refreshToken).build();
+    }
 
 
-
-    private void saveUserToken(AppUser user, String jwtToken) {
+    public void saveUserToken(AppUser user, String jwtToken) {
         var token = Token.builder()
                 .user(user)
                 .token(jwtToken)
@@ -105,8 +102,8 @@ public void authenticate(AuthenticationRequest request, HttpServletResponse resp
         tokenRepository.save(token);
     }
 
-    private void revokeAllUserTokens(AppUser user) {
-        var validUserTokens = tokenRepository.findAllValidTokenByUser(user.getId());
+    public void revokeAllUserTokens(AppUser user) {
+        var validUserTokens = tokenRepository.findAllValidTokenByUser(user.getUserId());
         if (validUserTokens.isEmpty())
             return;
         validUserTokens.forEach(token -> {
@@ -129,7 +126,7 @@ public void authenticate(AuthenticationRequest request, HttpServletResponse resp
         refreshToken = authHeader.substring(7);
         userEmail = jwtService.extractUsername(refreshToken);
         if (userEmail != null) {
-            var user = this.repository.findByEmail(userEmail)
+            var user = this.appUserRepository.findByEmail(userEmail)
                     .orElseThrow();
             if (jwtService.isTokenValid(refreshToken, user)) {
                 var accessToken = jwtService.generateToken(user);

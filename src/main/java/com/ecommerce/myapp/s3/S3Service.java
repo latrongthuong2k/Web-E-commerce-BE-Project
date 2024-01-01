@@ -10,7 +10,9 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class S3Service {
@@ -37,7 +39,6 @@ public class S3Service {
      * @return object request
      */
     public byte[] getObject(String bucketName, String key) {
-        System.out.println(key);
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                 .bucket(bucketName)
                 .key(key)
@@ -58,12 +59,18 @@ public class S3Service {
      * @param keys       keys of image
      * @return Map of each image with key
      */
-    public List<String> getObjects(String bucketName, List<String> keys) {
-        return keys.stream().map(key -> String.format("https://%s.s3.amazonaws.com/%s", bucketName, key)).toList();
+    public Set<S3ObjectCustom> getObjects(String bucketName, List<String> keys) {
+        Set<S3ObjectCustom> objects = new HashSet<>();
+        keys.forEach(key -> {
+            String url = String.format("https://%s.s3.amazonaws.com/%s", bucketName, key);
+            objects.add(new S3ObjectCustom(key, url));
+        });
+        return objects;
     }
 
-    public String getObjectUrl(String bucketName, String key) {
-        return String.format("https://%s.s3.amazonaws.com/%s", bucketName, key);
+    public S3ObjectCustom getObjectUrl(String bucketName, String key) {
+        var url = String.format("https://%s.s3.amazonaws.com/%s", bucketName, key);
+        return new S3ObjectCustom(key, url);
     }
 
     /**

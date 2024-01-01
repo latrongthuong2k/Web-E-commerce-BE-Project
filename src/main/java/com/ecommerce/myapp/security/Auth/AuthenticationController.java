@@ -1,57 +1,110 @@
 package com.ecommerce.myapp.security.Auth;
 
-import com.ecommerce.myapp.services.user.UserService;
+import com.ecommerce.myapp.exceptions.DuplicateResourceException;
 import com.ecommerce.myapp.security.ReqResSecurity.AuthenticationRequest;
+import com.ecommerce.myapp.security.ReqResSecurity.AuthenticationResponse;
 import com.ecommerce.myapp.security.ReqResSecurity.RegisterRequest;
+import com.ecommerce.myapp.security.Token.TokenRepository;
+import com.ecommerce.myapp.services.UserService;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 
-@RestController
+@Controller
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class AuthenticationController {
 
     private final AuthenticationService authService;
     private final UserService userService;
+    private final TokenRepository tokenRepository;
 
-    @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
-        if (userService.existsByEmail(request.getEmail())) {
-            return ResponseEntity.badRequest().body("Email has already been taken");
+    @PostMapping("/sign-up")
+    public ResponseEntity<AuthenticationResponse> register(@Valid @RequestBody
+                                                           RegisterRequest request,
+                                                           HttpServletResponse httpServletResponse) throws IOException {
+        if (userService.existsByEmail("", request.getUserName().toLowerCase())) {
+            throw new DuplicateResourceException("UserName  has already been taken");
+        } else if (userService.existsByEmail(request.getEmail().toLowerCase(), "")) {
+            throw new DuplicateResourceException("Email name has already been taken");
         }
-        return ResponseEntity.ok(authService.register(request));
+        AuthenticationResponse res = authService.register(request);
+//        Cookie cookie = new Cookie("auth-token", res.getAccessToken());
+//        cookie.setHttpOnly(true);
+//        cookie.setSecure(false);
+//        cookie.setPath("/");
+//        cookie.setMaxAge(7 * 24 * 60 * 60);
+//        httpServletResponse.addCookie(cookie);
+        return ResponseEntity.ok(res);
     }
 
-//    @PostMapping("/authenticate")
-//    public ResponseEntity<AuthenticationResponse> authenticate(
-//            @RequestBody AuthenticationRequest request
-//    ) {
-//        return ResponseEntity.ok(authService.authenticate(request));
-//    }
+    @PostMapping("/sign-in")
+    public ResponseEntity<AuthenticationResponse> authenticate(@Valid @RequestBody AuthenticationRequest request,
+                                                               HttpServletResponse httpServletResponse) {
+        AuthenticationResponse res = authService.authenticate(request);
 
-@PostMapping("/authenticate")
-public ResponseEntity<?> authenticate(
-        @RequestBody AuthenticationRequest request,
-        HttpServletResponse response
-) {
-    authService.authenticate(request, response);
-    return ResponseEntity.ok().build();
-}
+        if(res == null) {
+            httpServletResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return ResponseEntity.status(HttpServletResponse.SC_UNAUTHORIZED).build();
+        }
+        Cookie cookie = new Cookie("auth-token", res.getAccessToken());
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(7 * 24 * 60 * 60);
+        httpServletResponse.addCookie(cookie);
+        return ResponseEntity.ok(res);
+    }
 
-
-    @PostMapping("/refresh-token\\")
+    @PostMapping("/refresh-token")
     public void refreshToken(
             HttpServletRequest request,
             HttpServletResponse response
     ) throws IOException {
         authService.refreshToken(request, response);
+    }
+
+
+    @GetMapping("/check-authentication")
+    public ResponseEntity<?> checkAuthentication(HttpServletRequest request) {
+
+        String token = getCookieByName(request, "auth-token");
+        if (validateToken(token)) {
+            return ResponseEntity.ok("Authenticated");
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid auth token");
+        }
+    }
+
+
+    public static String getCookieByName(HttpServletRequest request, String nameCookie) {
+        Cookie[] cookies = request.getCookies();
+        String token = null;
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if (nameCookie.equals(cookie.getName())) {
+                    token = cookie.getValue();
+                    break;
+                }
+            }
+        }
+        return token;
+    }
+
+    private Boolean validateToken(String token) {
+        return tokenRepository.findByToken(token)
+                .map(t -> !t.isExpired() && !t.isRevoked())
+                .orElse(false);
     }
 }
