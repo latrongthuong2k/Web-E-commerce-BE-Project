@@ -52,19 +52,27 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public Set<Product> getAllProduct(AppUser appUser) {
-        var userCart = getUserCart(appUser);
+        ShoppingCart userCart = getUserCart(appUser);
         Set<Product> products = new HashSet<>();
-        Set<CartItem> cartItems = cartItemRepository.findAllByCart(userCart);
-        cartItems.forEach(cartItem -> {
+        findAllByUserCart(userCart).forEach(cartItem -> {
             cartItemRepository.getProduct(cartItem).ifPresent(products::add);
         });
         return products;
+    }
+
+    public Set<CartItem> findAllByUserCart(ShoppingCart userCart) {
+        return cartItemRepository.findAllByCart(userCart);
     }
 
     @Override
     public void addProductToCart(AppUser user, List<ReqProductOnCart> productsOnCart) {
         ShoppingCart userCart = getUserCart(user);
         Set<CartItem> cartItems = cartItemRepository.findAllByCart(userCart);
+        Map<String, CartItem> cartItemMap = cartItems.stream()
+                .collect(Collectors.toMap(
+                        item -> STR."\{item.getProduct().getProductId()}_\{item.getSizeLabel()}",
+                        item -> item));
+
         List<Long> productIds = productsOnCart.stream()
                 .map(ReqProductOnCart::productId)
                 .toList();
@@ -73,16 +81,24 @@ public class CartServiceImpl implements CartService {
         Map<Long, Product> productMap = products.stream()
                 .collect(Collectors.toMap(Product::getProductId, product -> product));
 
-        for (ReqProductOnCart productReq : productsOnCart) {
-            Product product = productMap.get(productReq.productId());
+        for (ReqProductOnCart cartItemReq : productsOnCart) {
+            Product product = productMap.get(cartItemReq.productId());
             if (product != null) {
-                CartItem cartItem = new CartItem();
-                cartItem.setProduct(product);
-                cartItem.setCart(userCart);
-                cartItem.setQuantity(productReq.quantity());
-                cartItems.add(cartItem);
+                String key = STR."\{cartItemReq.productId()}_\{cartItemReq.sizeLabel()}";
+                CartItem cartItem = cartItemMap.get(key);
+                if (cartItem != null) {
+                    cartItem.setQuantity(cartItemReq.quantity());
+                } else {
+                    // Sản phẩm chưa có trong giỏ thì
+                    cartItem = new CartItem();
+                    cartItem.setProduct(product);
+                    cartItem.setCart(userCart);
+                    cartItem.setQuantity(cartItemReq.quantity());
+                    cartItem.setSizeLabel(cartItemReq.sizeLabel());
+                    cartItems.add(cartItem);
+                }
             } else {
-                throw new ResourceNotFoundException(STR."Product with ID \{productReq.productId()} cannot found !");
+                throw new ResourceNotFoundException(STR."Product with ID \{cartItemReq.productId()} cannot found !");
             }
         }
         cartItemRepository.saveAll(cartItems);
@@ -90,10 +106,10 @@ public class CartServiceImpl implements CartService {
 
 
     @Override
-    public void updateCartItem(AppUser user, Long cartItemId, Integer quantity) {
+    public void updateCartItem(AppUser user, Long productId, Integer quantity) {
         Set<CartItem> cartItems = getCartItems(user);
         cartItems.stream()
-                .filter(item -> item.getId().equals(cartItemId))
+                .filter(item -> item.getProduct().getProductId().equals(productId))
                 .findFirst()
                 .ifPresent(item ->
                         item.setQuantity(quantity));
@@ -101,10 +117,9 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public void deleteCartItem(AppUser user, Long cartItemId) {
-        Set<CartItem> cartItems = getCartItems(user);
-        cartItems.removeIf(item -> item.getId().equals(cartItemId));
-        cartItemRepository.saveAll(cartItems);
+    public void deleteCartItem(AppUser user, Long productId, String sizeLabel) {
+        var userCart = getUserCart(user);
+        cartItemRepository.deleteByProductIdAndSize(productId, userCart.getId(),sizeLabel);
     }
 
     @Override
@@ -114,17 +129,18 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public void clearAllItem(AppUser user) {
-        Set<CartItem> cartItems = getCartItems(user);
+    public void cleanCartItems(AppUser user) {
+        var userCart = getUserCart(user);
+        var cartItems = cartItemRepository.findAllByCart(userCart);
         if (!cartItems.isEmpty()) {
-            cartItems.clear();
-            cartItemRepository.saveAll(cartItems);
+            cartItemRepository.deleteAllByCart(userCart);
         } else
             throw new ResourceNotFoundException("Currently don't have any item on cart !");
     }
 
     @Override
-    public void checkOut(AppUser user, String note) {
-        orderService.createOrder(user, note, getCartItems(user));
+    public void checkOut(AppUser user) {
+        var carItems = cartItemRepository.findAllByCart(getUserCart(user));
+        orderService.createOrder(user, carItems);
     }
 }

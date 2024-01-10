@@ -7,7 +7,7 @@ import com.ecommerce.myapp.dtos.user.response.ResUserDetailData;
 import com.ecommerce.myapp.model.client.UserAddress;
 import com.ecommerce.myapp.model.user.AppUser;
 import com.ecommerce.myapp.model.user.Role;
-import com.ecommerce.myapp.s3.S3ObjectCustom;
+import com.ecommerce.myapp.s3.S3ProductImages;
 import com.ecommerce.myapp.security.ReqResSecurity.ChangePasswordRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,18 +23,21 @@ public interface UserService {
     void userChangePassword(ChangePasswordRequest request, AppUser appUser);
 
     // Todo: gọi hàm này trong menu Worker management -> acc đã thay đổi role thì sẽ bắt đăng nhập lại để có token mới
-    void changeRole(Role role);
+    void changeRole(Long userId, Role role);
+
+    void deleteAdminManagerRole(Long userId);
 
     ResUserDetailData getUserPrevDataById(Long id);
 
     AppUser findById(Long userId);
+    AppUser findByUserName(String userName);
 
     boolean existsByEmail(String email, String userName);
 
     void uploadUserProfileImage(AppUser userId,
                                 MultipartFile file);
 
-    S3ObjectCustom getUserProfileImage(AppUser user);
+    S3ProductImages getUserProfileImage(AppUser user);
 
     void deleteS3Object(AppUser user);
 

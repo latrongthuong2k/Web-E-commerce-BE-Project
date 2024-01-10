@@ -1,6 +1,7 @@
 package com.ecommerce.myapp.dtos.product.mappers;
 
 import com.ecommerce.myapp.dtos.product.ProductFullInfoDTO;
+import com.ecommerce.myapp.dtos.product.response.ResProductDetailDTO;
 import com.ecommerce.myapp.model.group.Product;
 import org.mapstruct.*;
 
@@ -8,6 +9,8 @@ import org.mapstruct.*;
 public interface ProductFullMapper {
     Product toEntity(ProductFullInfoDTO reqCreateProductDTO);
     ProductFullInfoDTO toDto(Product product);
+    ResProductDetailDTO toProductDto(Product product);
+
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     Product partialUpdate(ProductFullInfoDTO productFullInfoDTO, @MappingTarget Product product);

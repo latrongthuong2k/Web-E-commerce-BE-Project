@@ -12,11 +12,10 @@ import com.ecommerce.myapp.model.user.AppUser;
 import com.ecommerce.myapp.model.user.Role;
 import com.ecommerce.myapp.model.user.UserImage;
 import com.ecommerce.myapp.repositories.AppUserRepository;
-import com.ecommerce.myapp.repositories.ShoppingCartRepository;
 import com.ecommerce.myapp.repositories.UserAddressRepository;
 import com.ecommerce.myapp.repositories.UserImageRepository;
 import com.ecommerce.myapp.s3.S3Buckets;
-import com.ecommerce.myapp.s3.S3ObjectCustom;
+import com.ecommerce.myapp.s3.S3ProductImages;
 import com.ecommerce.myapp.s3.S3Service;
 import com.ecommerce.myapp.security.ReqResSecurity.ChangePasswordRequest;
 import com.ecommerce.myapp.security.Token.TokenRepository;
@@ -57,7 +56,6 @@ public class UserServiceImpl implements UserService {
     private final AppUserRepository appUserRepository;
     private final UserImageRepository userImageRepository;
     private final UserAddressRepository userAddressRepository;
-    private final ShoppingCartRepository shoppingCartRepository;
 
 
     // current auditor
@@ -93,14 +91,17 @@ public class UserServiceImpl implements UserService {
         appUserRepository.save(user);
     }
 
-    // Todo: gọi hàm này trong menu Worker management -> acc đã thay đổi role thì sẽ bắt đăng nhập lại để có token mới
     @Override
-    public void changeRole(Role role) {
-        var user = getCurrentAuditor();
-        if (user.getRole() != Role.USER && user.getRole() != Role.ADMIN) {
-            throw new IllegalArgumentException("Role must be USER or ADMIN");
-        }
-        user.setRole(user.getRole());
+    public void changeRole(Long userId, Role role) {
+        var user = findById(userId);
+        user.setRole(role);
+        // save new user with new authorize
+        appUserRepository.save(user);
+    }
+    @Override
+    public void deleteAdminManagerRole(Long userId) {
+        var user = findById(userId);
+        user.setRole(Role.USER);
         // save new user with new authorize
         appUserRepository.save(user);
     }
@@ -109,7 +110,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public ResUserDetailData getUserPrevDataById(Long id) {
         AppUser appUser = foundUser(id);
-        return new ResUserDetailData(appUser.getUsername(),
+        return new ResUserDetailData(
+                id,
+                appUser.getUsername(),
                 appUser.getEmail(),
                 appUser.getPassword(),
                 appUser.getPhone());
@@ -122,12 +125,12 @@ public class UserServiceImpl implements UserService {
         if (authentication != null && authentication.getPrincipal() instanceof AppUser user) {
             user.setFullName(userChangeInfoReq.fullName());
             user.setPhone(userChangeInfoReq.phone());
-            user.setEmail(userChangeInfoReq.changeEmailPassWordReq().getNewEmail());
-            if (userChangeInfoReq.avatarFile() != null) {
-                deleteS3Object(user);
-                uploadUserProfileImage(user, userChangeInfoReq.avatarFile());
+            if (!userChangeInfoReq.avatarFile().isEmpty()) {
+//                deleteS3Object(user);
+                userImageRepository.deleteByAppUser(user);
+                uploadUserProfileImage(user, userChangeInfoReq.avatarFile().getFirst());
             }
-            userChangePassword(userChangeInfoReq.changeEmailPassWordReq().getChangePasswordRequest(), user);
+//            userChangePassword(userChangeInfoReq.changeEmailPassWordReq().getChangePasswordRequest(), user);
             appUserRepository.save(user);
         }
     }
@@ -148,6 +151,12 @@ public class UserServiceImpl implements UserService {
             return null;
         }
         return foundUser(userId);
+    }
+
+    @Override
+    public AppUser findByUserName(String userName) {
+        return appUserRepository.findByUserNameOrEmail(userName).orElseThrow(() ->
+                new ResourceNotFoundException("User with name [%s] is not found ".formatted(userName)));
     }
 
     @Override
@@ -176,7 +185,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public S3ObjectCustom getUserProfileImage(AppUser appUser) {
+    public S3ProductImages getUserProfileImage(AppUser appUser) {
         UserImage userImage = userImageRepository.findByAppUser(appUser).orElseThrow(
                 () -> new EntityNotFoundException("User with id [%s] profile image not found"
                         .formatted(appUser.getUserId())));
@@ -188,11 +197,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void deleteS3Object(AppUser appUser) {
-        UserImage userImage = userImageRepository.findByAppUser(appUser).orElseThrow(
-                () -> new EntityNotFoundException("User with id [%s] profile image not found"
-                        .formatted(appUser.getUserId())));
-        userImageRepository.delete(userImage);
-        s3Service.deleteObject(s3Buckets.getUserImageBucket(), userImage.getKey());
+//        UserImage userImage = userImageRepository.findByAppUser(appUser).orElseThrow(
+//                () -> new EntityNotFoundException("User with id [%s] profile image not found"
+//                        .formatted(appUser.getUserId())));
+
+//        s3Service.deleteObject(s3Buckets.getUserImageBucket(), userImage.getKey());
     }
 
     @Override
@@ -221,7 +230,7 @@ public class UserServiceImpl implements UserService {
         UserAddress userAddress = userAddressMapper.toEntity(userAddressDto);
         var user = getCurrentAuditor();
         if (userAddress.getIsMainAddress()) {
-            Set<UserAddress> userAddresses = userAddressRepository.findAllByAppUser(user);
+            Set<UserAddress> userAddresses = userAddressRepository.findAllByUserId(user.getUserId());
             userAddresses.forEach(address -> address.setIsMainAddress(false));
         }
         userAddress.setAppUser(user);
@@ -235,14 +244,14 @@ public class UserServiceImpl implements UserService {
         UserAddress userAddress = userAddressMapper.toEntity(userAddressDto);
         var user = getCurrentAuditor();
         if (userAddress.getIsMainAddress()) {
-            Set<UserAddress> userAddresses = userAddressRepository.findAllByAppUser(user);
+            Set<UserAddress> userAddresses = userAddressRepository.findAllByUserId(user.getUserId());
             userAddresses.forEach(address -> address.setIsMainAddress(false));
         }
         userAddressRepository.save(userAddress);
     }
 
     public Set<UserAddress> getUserAddresses(AppUser appUser) {
-        return userAddressRepository.findAllByAppUser(appUser);
+        return userAddressRepository.findAllByUserId(appUser.getUserId());
     }
 
     @Override

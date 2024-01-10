@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Size;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * DTO for {@link Category}
@@ -19,6 +20,9 @@ public record ReqCreateCategory(
         String description,
         @NotNull(message = "Status cannot be null")
         Boolean status,
-        MultipartFile imageFiles
+
+        @Size(min = 1, max = 1, message = "You must upload exactly one file")
+        @NotNull
+        List<MultipartFile> imageFiles
 ) implements Serializable {
 }

@@ -13,7 +13,8 @@ public record UserAddressDto(
         Long id,
         @NotNull(message = "isMainAddress can't be null")
         Boolean isMainAddress,
-        @Size(message = "Minimum character is 1 and maximum 255", min = 1, max = 255) @NotBlank(message = "Address can't be empty") String fullAddress,
+        @Size(message = "Minimum character is 1 and maximum 255", min = 1, max = 255) @NotBlank(message = "Address can't be empty")
+        String fullAddress,
         String phone,
         @Size(message = "Max character is 255 ", max = 255)
         @NotBlank(message = "receiveName can't be blank")

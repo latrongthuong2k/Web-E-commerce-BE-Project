@@ -8,13 +8,13 @@ import org.mapstruct.*;
 public interface ProductSimpleMapper {
     Product toEntity(ResSimpleInfoProductDto resSimpleInfoProductDto);
 
+
     @AfterMapping
     default void linkProductImages(@MappingTarget Product product) {
         product.getProductImages().forEach(productImage -> productImage.setProduct(product));
     }
 
     ResSimpleInfoProductDto toDto(Product product);
-//    ProductFullInfoDTO toDto(Product product);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     Product partialUpdate(ResSimpleInfoProductDto resSimpleInfoProductDto, @MappingTarget Product product);

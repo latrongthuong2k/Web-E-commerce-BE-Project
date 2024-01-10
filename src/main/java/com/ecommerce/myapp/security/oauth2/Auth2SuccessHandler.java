@@ -19,8 +19,6 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationSu
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Optional;
 
@@ -91,6 +89,7 @@ public class Auth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
             // User doesn't exist, create a new one
             user = new AppUser();
             // Set fields from attributes
+            user.setUserName(email);
             user.setFullName(STR."\{givenName} \{name}");
             user.setEmail(email);
             user.setPassword(passwordEncoder.encode(randomPasswordGenerator.generateRandomPassword(10)));
@@ -102,7 +101,7 @@ public class Auth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
         // Set content type to JSON
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
-        Cookie tokenCookie = new Cookie("auth-token", URLEncoder.encode(authRes.getAccessToken(), StandardCharsets.UTF_8));
+        Cookie tokenCookie = new Cookie("auth-token", authRes.getAccessToken());
         tokenCookie.setHttpOnly(true);
         tokenCookie.setSecure(true);
         tokenCookie.setPath("/");

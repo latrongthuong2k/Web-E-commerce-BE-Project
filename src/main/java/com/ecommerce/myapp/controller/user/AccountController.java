@@ -4,10 +4,11 @@ import com.ecommerce.myapp.dtos.cart.Address.UserAddressDto;
 import com.ecommerce.myapp.dtos.cart.Address.UserAddressMapper;
 import com.ecommerce.myapp.dtos.cart.order.OrderMapper;
 import com.ecommerce.myapp.dtos.cart.order.response.OrderDto;
+import com.ecommerce.myapp.dtos.user.AppUserFullInfo;
 import com.ecommerce.myapp.dtos.user.request.UserChangeInfoReq;
 import com.ecommerce.myapp.model.checkoutGroup.OrderStatusV2;
 import com.ecommerce.myapp.model.client.UserAddress;
-import com.ecommerce.myapp.model.user.AppUser;
+import com.ecommerce.myapp.s3.S3ProductImages;
 import com.ecommerce.myapp.security.ReqResSecurity.ChangePasswordRequest;
 import com.ecommerce.myapp.services.OrderService;
 import com.ecommerce.myapp.services.UserService;
@@ -23,20 +24,32 @@ import java.util.Set;
 
 @RestController
 @AllArgsConstructor
-@RequestMapping("/api/v1/account")
+@RequestMapping("/api/v1/user/account")
 @PreAuthorize("hasAnyRole('USER','ADMIN','MANAGER')")
 public class AccountController {
     private final UserService userService;
     private final UserAddressMapper userAddressMapper;
     private final OrderMapper orderMapper;
     private final OrderService orderService;
+//    private final AppUserFullInfoMapper appUserFullInfoMapper;
 
     //  /account/{userId}
     @GetMapping("/user-detail")
-    public ResponseEntity<AppUser> userInfo(
+    public ResponseEntity<AppUserFullInfo> userInfo(
     ) {
         var user = userService.getCurrentAuditor();
-        return ResponseEntity.ok(user);
+        S3ProductImages userImage = userService.getUserProfileImage(user);
+
+        return ResponseEntity.ok(new AppUserFullInfo(
+                user.getUserId(),
+                user.getFullName(),
+                user.getEmail(),
+                user.getFullName(),
+                user.getPhone(),
+                user.getGender(),
+                userService.getUserProfileImage(user),
+                userService.getUserAddresses(user).stream().map(userAddressMapper::toDto).toList()
+        ));
     }
 
     //  /account/{userId}
@@ -57,16 +70,12 @@ public class AccountController {
     public ResponseEntity<String> changePassword(
             @Valid @RequestBody ChangePasswordRequest changePasswordRequest
     ) {
-        try {
-            userService.userChangePassword(changePasswordRequest, userService.getCurrentAuditor());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        userService.userChangePassword(changePasswordRequest, userService.getCurrentAuditor());
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     //  /account/{userId}/address
-    @PutMapping("/add/user-address")
+    @PostMapping("/add/user-address")
     public ResponseEntity<String> addAddress(
             @Valid @RequestBody UserAddressDto UserAddressDto
     ) {
@@ -133,7 +142,7 @@ public class AccountController {
             @PathVariable(value = "orderId") Long orderId
     ) {
         var user = userService.getCurrentAuditor();
-         orderService.cancelOrder(user,orderId);
+        orderService.cancelOrder(user, orderId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }

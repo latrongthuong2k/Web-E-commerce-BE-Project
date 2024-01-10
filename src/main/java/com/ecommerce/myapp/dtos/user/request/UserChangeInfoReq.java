@@ -1,11 +1,14 @@
 package com.ecommerce.myapp.dtos.user.request;
 
 import com.ecommerce.myapp.model.user.AppUser;
-import com.ecommerce.myapp.security.ReqResSecurity.ChangeEmailPasswordReq;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * DTO for {@link AppUser}
@@ -25,10 +28,8 @@ public record UserChangeInfoReq(
         @Pattern(regexp = "^0[35789]\\d{8}$", message = "Invalid phone number")
         String phone,
 
-        MultipartFile avatarFile,
-
-        @NotNull(message = "Change email/password request cannot be null")
-        ChangeEmailPasswordReq changeEmailPassWordReq
+        @Size(min = 1, max = 1, message = "You must upload exactly one file")
+        List<MultipartFile> avatarFile
 
 ) implements Serializable {
 }

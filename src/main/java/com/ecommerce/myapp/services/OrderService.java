@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Set;
 
 public interface OrderService {
-    void createOrder(AppUser appUser, String note, Set<CartItem> cartItems);
+    void createOrder(AppUser appUser, Set<CartItem> cartItems);
 
     List<Order> findAllById(List<Long> orderIds);
 

@@ -2,20 +2,19 @@ package com.ecommerce.myapp.controller.Admin;
 
 import com.ecommerce.myapp.dtos.dashboard.CategoryRevenueDto;
 import com.ecommerce.myapp.dtos.dashboard.SalesDto;
+import com.ecommerce.myapp.dtos.dashboard.TimeDto;
 import com.ecommerce.myapp.dtos.product.mappers.ProductSimpleMapper;
 import com.ecommerce.myapp.dtos.product.response.ResSimpleInfoProductDto;
 import com.ecommerce.myapp.model.group.Product;
 import com.ecommerce.myapp.services.OrderService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.List;
@@ -30,10 +29,8 @@ public class DashboardManagementController {
     private final ProductSimpleMapper productSimpleMapper;
 
     @GetMapping("/sales")
-    public ResponseEntity<SalesDto> getSales(
-            @RequestParam(name = "from") String from,
-            @RequestParam("to") String to) {
-        return ResponseEntity.ok(orderService.getSalesByTime(from, to));
+    public ResponseEntity<SalesDto> getSales( @Valid @RequestBody TimeDto timeDto){
+        return ResponseEntity.ok(orderService.getSalesByTime(timeDto.from(), timeDto.to()));
     }
 
     @GetMapping("/best-seller-products")

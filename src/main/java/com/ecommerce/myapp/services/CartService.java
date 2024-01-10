@@ -21,11 +21,11 @@ public interface CartService {
 
     void updateCartItem(AppUser user, Long productId, Integer quantity);
 
-    void deleteCartItem(AppUser currentAuditor, Long productId);
+    void deleteCartItem(AppUser currentAuditor, Long productId, String sizeLabel);
 
     Set<CartItem> getCartItems(AppUser user);
 
-    void clearAllItem(AppUser currentAuditor);
+    void cleanCartItems(AppUser currentAuditor);
 
-    void checkOut(AppUser currentAuditor, String note);
+    void checkOut(AppUser currentAuditor);
 }

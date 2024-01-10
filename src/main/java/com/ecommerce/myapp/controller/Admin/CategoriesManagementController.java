@@ -41,7 +41,7 @@ public class CategoriesManagementController {
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "20") int size,
             @RequestParam(name = "q", defaultValue = "") String query,
-            @RequestParam(name = "sortField", defaultValue = "name") String sortField,
+            @RequestParam(name = "sortField", defaultValue = "categoryName") String sortField,
             @RequestParam(name = "sortDir", defaultValue = "asc") String sortDir) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortDir.equals("asc") ? Sort.Direction.ASC : Sort.Direction.DESC, sortField));
         Page<Category> categories = categoryService.getCategoryPage(query, pageable);
@@ -52,13 +52,13 @@ public class CategoriesManagementController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/get-id-name")
-    public ResponseEntity<ResCategory> getCategoryById(@RequestParam(name = "categoryId") Long id) {
+    @GetMapping("/get/{categoryId}")
+    public ResponseEntity<ResCategory> getCategoryById(@PathVariable("categoryId") Long id) {
         return ResponseEntity.ok(categoryMapper.toDto(categoryService.findById(id)));
     }
 
-    @GetMapping("/get-detail")
-    public ResponseEntity<CategoryDto> getDetailCate(@RequestParam(name = "categoryId") Long id) {
+    @GetMapping("/get-detail/{categoryId}")
+    public ResponseEntity<CategoryDto> getDetailCate(@PathVariable("categoryId") Long id) {
         return ResponseEntity.ok(categoryFullMapper.toDto(categoryService.findById(id)));
     }
 

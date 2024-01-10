@@ -1,10 +1,7 @@
 package com.ecommerce.myapp.security.ReqResSecurity;
 
 import com.ecommerce.myapp.model.user.Gender;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -36,6 +33,7 @@ public class RegisterRequest {
 
     //    @Size(message = "Maximum limit character for phone number is 15", max = 15)
 //    @Pattern(regexp = "^0[35789]\\d{8}$", message = "Invalid phone number")
+    @NotNull
     private Gender gender;
 
 //    private Role role;

@@ -1,11 +1,12 @@
 package com.ecommerce.myapp.controller.Admin;
 
+import com.ecommerce.myapp.dtos.editDtos.UserActionRequest;
 import com.ecommerce.myapp.dtos.user.response.ResListUsers;
 import com.ecommerce.myapp.dtos.user.response.ResUserDetailData;
 import com.ecommerce.myapp.dtos.user.response.UserPublicDataMapper;
 import com.ecommerce.myapp.model.user.Role;
 import com.ecommerce.myapp.services.UserService;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -57,28 +58,45 @@ public class UserManagementController {
         if (isAdmin) {
             usersPage = userService.getNonAdminUserAccounts(query, pageable);
         } else {
+            // manager
             usersPage = userService.getUserAccounts(query, pageable);
         }
         Map<String, Object> response = objectMap(usersPage);
         return ResponseEntity.ok(response);
     }
 
-    @PreAuthorize("hasAuthority('admin:update')")
     @PutMapping("/role")
-    public ResponseEntity<Void> upgradeToAdmin(@NotNull Role role) {
-        userService.changeRole(role);
+    @CacheEvict(value = "user-table", allEntries = true)
+    @PreAuthorize("hasAuthority('admin:update')")
+    public ResponseEntity<?> upgradeRole(@Valid @RequestBody UserActionRequest userActionRequest) {
+        Role checkRole = Role.fromString(userActionRequest.role());
+        userService.changeRole(userActionRequest.userId(), checkRole);
         return new ResponseEntity<>(HttpStatus.OK);
+//        var userRole = userService.findById(userActionRequest.userId()).getRole();
+//        return ResponseEntity.ok(STR."UserId \{userActionRequest.userId()} current role \{userRole}");
+    }
+
+    @CacheEvict(value = "user-table", allEntries = true)
+    @DeleteMapping("/role")
+    public ResponseEntity<?> deleteHighRoles(@Valid @RequestBody UserActionRequest userActionRequest) {
+//        var prevRole = userService.findById(userActionRequest.userId()).getRole();
+        var userId = userActionRequest.userId();
+        userService.deleteAdminManagerRole(userId);
+//        var currentRole = userService.findById(userActionRequest.userId()).getRole();
+        return new ResponseEntity<>(HttpStatus.OK);
+//        return ResponseEntity.ok(STR."UserId \{userActionRequest.userId()} prevRole \{prevRole}  current role \{currentRole}");
     }
 
     @CacheEvict(value = "user-table", allEntries = true)
     @PreAuthorize("hasAuthority('admin:update')")
     @PutMapping("/user-status")
-    public ResponseEntity<Void> updateUserStatus(@RequestParam("userId") Long userId) {
+    public ResponseEntity<?> updateUserStatus(@Valid @RequestBody UserActionRequest userActionRequest) {
+        var userId = userActionRequest.userId();
         userService.updateStatus(userId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @PreAuthorize("hasAuthority('admin:get')")
+    @PreAuthorize("hasAuthority('admin:read')")
     @GetMapping("/get-roles")
     public ResponseEntity<List<Role>> getRoles() {
         List<Role> roles = Role.ADMIN.getAllRoles();
@@ -86,15 +104,17 @@ public class UserManagementController {
     }
 
     @GetMapping("/get-detail")
-    public ResponseEntity<ResUserDetailData> getUserDetail(@RequestParam("userId") Long userId) {
+    public ResponseEntity<ResUserDetailData> getUserDetail(@Valid @RequestBody UserActionRequest userActionRequest) {
+        var userId = userActionRequest.userId();
         var user = userService.findById(userId);
         return ResponseEntity.ok(userPublicDataMapper.toDto(user));
     }
 
-    //    @CacheEvict(value = "user-table", allEntries = true)
+    @CacheEvict(value = "user-table", allEntries = true)
     @PreAuthorize("hasAuthority('admin:delete')")
     @DeleteMapping("/delete")
-    public ResponseEntity<Void> deleteUser(@RequestParam("userId") Long userId) {
+    public ResponseEntity<Void> deleteUser(@Valid @RequestBody UserActionRequest userActionRequest) {
+        var userId = userActionRequest.userId();
         userService.deleteById(userId);
         return new ResponseEntity<>(HttpStatus.OK);
     }

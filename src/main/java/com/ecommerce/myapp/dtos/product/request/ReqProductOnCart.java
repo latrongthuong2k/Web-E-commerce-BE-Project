@@ -2,6 +2,7 @@ package com.ecommerce.myapp.dtos.product.request;
 
 import com.ecommerce.myapp.model.group.Product;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
@@ -16,6 +17,8 @@ public record ReqProductOnCart(
         Long productId,
         @NotNull(message = "Stock quantity cannot be null")
         @Min(value = 0, message = "Stock quantity cannot be negative")
-        @NotNull Integer quantity
+        @NotNull Integer quantity,
+
+        @NotBlank String sizeLabel
 ) implements Serializable {
 }

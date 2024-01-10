@@ -23,7 +23,7 @@ public interface AppUserRepository extends JpaRepository<AppUser, Long> {
     Optional<AppUser> findByEmail(String email);
 
 
-    @Query("select a from AppUser a where a.role = 'ADMIN' and " +
+    @Query("select a from AppUser a where a.role != 'ADMIN' and " +
            "(lower(a.email) like lower(concat('%', ?1, '%')) " +
            "or lower(a.fullName) like lower(concat('%', ?1, '%')) " +
            "or lower(a.userName) like lower(concat('%', ?1, '%')))")

@@ -4,12 +4,13 @@ import com.ecommerce.myapp.dtos.cart.order.OrderMapper;
 import com.ecommerce.myapp.dtos.cart.order.OrderSimpleMapper;
 import com.ecommerce.myapp.dtos.cart.order.response.OrderDto;
 import com.ecommerce.myapp.dtos.cart.order.response.OrderSimpleInfoDto;
+import com.ecommerce.myapp.dtos.cart.request.OrderUpdateReq;
 import com.ecommerce.myapp.model.checkoutGroup.Order;
 import com.ecommerce.myapp.model.checkoutGroup.OrderStatusV2;
 import com.ecommerce.myapp.services.OrderService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -32,8 +33,8 @@ public class OrdersManagementController {
     private final OrderSimpleMapper orderSimpleMapper;
 
     // page
-    @Cacheable(value = "order-table", key = "{#page,#sortField,#sortDir,#query}",
-            condition = "#query.length() > 3")
+//    @Cacheable(value = "order-table", key = "{#page,#sortField,#sortDir,#query}",
+//            condition = "#query.length() > 3")
     @GetMapping("/order-table")
     public ResponseEntity<Map<String, Object>> getOrderTable(
             @RequestParam(name = "page", defaultValue = "0") int page,
@@ -52,24 +53,23 @@ public class OrdersManagementController {
     }
 
     @GetMapping("/{order-status}")
-    public ResponseEntity<List<OrderSimpleInfoDto>> getOrdersByStatus(@PathVariable("order-status") OrderStatusV2 status) {
-        List<OrderSimpleInfoDto> response = orderService.findAllByStatus(status).stream().map(orderSimpleMapper::toDto).toList();
+    public ResponseEntity<List<OrderSimpleInfoDto>> getOrdersByStatus(@PathVariable("order-status") String status) {
+        List<OrderSimpleInfoDto> response = orderService.findAllByStatus(OrderStatusV2.fromString(status)).stream().map(orderSimpleMapper::toDto).toList();
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/get-detail")
-    public ResponseEntity<OrderDto> getOrderDetail(@RequestParam(name = "orderId") Long orderId) {
+    @GetMapping("/get-detail/{orderId}")
+    public ResponseEntity<OrderDto> getOrderDetail(@PathVariable("orderId") Long orderId) {
         return ResponseEntity.ok(orderMapper.toDto(orderService.findById(orderId)));
     }
 
     @CacheEvict(value = "order-table", allEntries = true)
-    @PutMapping("/update")
+    @PutMapping("/update/{orderId}")
     public ResponseEntity<String> updateCategory(
-            @RequestParam(name = "orderId") Long orderId,
-            @RequestParam("status") OrderStatusV2 statusV2) {
-        if (statusV2.equals(OrderStatusV2.SUCCESS))
-            throw new IllegalStateException("The status of the order with the 'SUCCESS' status cannot be updated.");
-        orderService.updateStatus(orderId, statusV2);
+            @PathVariable("orderId") Long orderId, @Valid @RequestBody OrderUpdateReq updateReq
+    ) {
+        OrderStatusV2 orderStatusV2 = OrderStatusV2.fromString(updateReq.orderStatus());
+        orderService.updateStatus(orderId, orderStatusV2);
         return ResponseEntity.ok().body("Status updated successfully");
     }
 

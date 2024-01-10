@@ -3,7 +3,7 @@ package com.ecommerce.myapp.controller.Admin;
 import com.ecommerce.myapp.dtos.product.ProductFullInfoDTO;
 import com.ecommerce.myapp.dtos.product.mappers.ProductFullMapper;
 import com.ecommerce.myapp.model.group.Product;
-import com.ecommerce.myapp.s3.S3ObjectCustom;
+import com.ecommerce.myapp.s3.S3ProductImages;
 import com.ecommerce.myapp.services.ProductService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -58,8 +58,8 @@ public class ProductsManagementController {
     }
 
     @Cacheable(value = "product", key = "#productId")
-    @GetMapping(value = "/get")
-    public ResponseEntity<ProductFullInfoDTO> getProduct(@RequestParam("productId") Long productId) {
+    @GetMapping(value = "/get/{productId}")
+    public ResponseEntity<ProductFullInfoDTO> getProduct(@PathVariable("productId") Long productId) {
         ProductFullInfoDTO response = productFullMapper.toDto(productService.getProductById(productId));
         return ResponseEntity.ok(response);
     }
@@ -76,8 +76,8 @@ public class ProductsManagementController {
 
     @Cacheable(value = "product-images", key = "#productId")
     @GetMapping(value = "/get-images")
-    public ResponseEntity<Set<S3ObjectCustom>> getImages(@RequestParam("productId") Long productId) {
-        Set<S3ObjectCustom> imagesObjs = productService.getProductImages(productService.findById(productId));
+    public ResponseEntity<Set<S3ProductImages>> getImages(@RequestParam("productId") Long productId) {
+        Set<S3ProductImages> imagesObjs = productService.getProductImages(productService.findById(productId));
         return ResponseEntity.ok(imagesObjs);
     }
 
@@ -85,9 +85,9 @@ public class ProductsManagementController {
             "productSearch", "all-product",
             "featured-Products", "new-products",
             "best-seller-products", "product","product-by-category"}, allEntries = true)
-    @DeleteMapping(value = "/delete")
+    @DeleteMapping(value = "/delete/{productId}")
     @PreAuthorize("hasAuthority('admin:delete')")
-    public ResponseEntity<Void> updateProduct(@RequestParam("productId") Long productId) {
+    public ResponseEntity<Void> deleteProduct(@PathVariable("productId") Long productId) {
         productService.deleteById(productId);
         return new ResponseEntity<>(HttpStatus.OK);
     }

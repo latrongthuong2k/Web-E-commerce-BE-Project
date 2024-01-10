@@ -52,5 +52,16 @@ public enum Role {
         return authorities;
     }
 
+    public static Role fromString(String role) {
+        if (role != null && !role.isEmpty()) {
+            try {
+                return Role.valueOf(role.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Role is not correct");
+            }
+        }
+        return null;
+    }
+
 }
 

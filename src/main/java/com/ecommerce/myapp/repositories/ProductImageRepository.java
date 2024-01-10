@@ -11,7 +11,7 @@ import java.util.Set;
 public interface ProductImageRepository extends JpaRepository<ProductImage, Long> {
     Set<ProductImage> findByProduct(Product product);
 
-    @Query("select p from ProductImage p where p.product = ?1 and p.isPrimary = true")
-    Optional<ProductImage> findMainImage(Product product);
+    @Query("select p from ProductImage p where p.product.productId = ?1 and p.isPrimary = true")
+    Optional<ProductImage> findMainImage(Long product);
 
 }

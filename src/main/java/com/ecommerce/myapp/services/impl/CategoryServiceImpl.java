@@ -12,7 +12,7 @@ import com.ecommerce.myapp.model.group.CategoryImage;
 import com.ecommerce.myapp.repositories.CategoryImageRepository;
 import com.ecommerce.myapp.repositories.CategoryRepository;
 import com.ecommerce.myapp.s3.S3Buckets;
-import com.ecommerce.myapp.s3.S3ObjectCustom;
+import com.ecommerce.myapp.s3.S3ProductImages;
 import com.ecommerce.myapp.s3.S3Service;
 import com.ecommerce.myapp.services.CategoryService;
 import lombok.AllArgsConstructor;
@@ -50,8 +50,8 @@ public class CategoryServiceImpl implements CategoryService {
         }
         Category categoryNew = categoryMapper.toEntity(reqCreateCategory);
         var saved = categoryRepository.save(categoryNew);
-        if (reqCreateCategory.imageFiles() != null) {
-            addCategoryImage(saved, reqCreateCategory.imageFiles(), s3Buckets.getCategoryBucket());
+        if (reqCreateCategory.imageFiles() != null && !reqCreateCategory.imageFiles().isEmpty()) {
+            addCategoryImage(saved, reqCreateCategory.imageFiles().getFirst(), s3Buckets.getCategoryBucket());
         }
     }
 
@@ -82,8 +82,9 @@ public class CategoryServiceImpl implements CategoryService {
     public void updateCategoryById(CategoryDto categoryDto) {
         Category category = foundCategory(categoryDto.id());
         Category updatedCategory = categoryFullMapper.partialUpdate(categoryDto, category);
-        if (categoryDto.imageFile() != null) {
-            addCategoryImage(category, categoryDto.imageFile(), s3Buckets.getCategoryBucket());
+        categoryImageRepository.deleteByCategoryId(categoryDto.id());
+        if (categoryDto.imageFile() != null && !categoryDto.imageFile().isEmpty() ) {
+            addCategoryImage(category, categoryDto.imageFile().getFirst(), s3Buckets.getCategoryBucket());
         }
         categoryRepository.save(updatedCategory);
     }
@@ -96,6 +97,7 @@ public class CategoryServiceImpl implements CategoryService {
             throw new CannotDeleteException("Cannot delete category as it contains products");
         }
         deleteS3Image(category, s3Buckets.getCategoryBucket());
+        categoryRepository.deleteById(category.getId());
     }
 
     @Override
@@ -128,7 +130,7 @@ public class CategoryServiceImpl implements CategoryService {
                     file.getBytes()
             );
             List<CategoryImage> categoryImages = categoryImageRepository.findAllByCategory(category);
-            categoryImages.add(CategoryImage.builder().category(category).Key(key).build());
+            categoryImages.add(CategoryImage.builder().category(category).Key(imageCode).build());
             categoryImageRepository.saveAll(categoryImages);
         } catch (IOException e) {
             throw new RuntimeException(String.format("failed to upload image with category key : %s", key), e);
@@ -142,7 +144,7 @@ public class CategoryServiceImpl implements CategoryService {
         if (categoryImage.isEmpty()) {
             throw new ResourceNotFoundException("Image not found");
         }
-        String imageCode = "category-images/%s/%s".formatted(category.getId(), categoryImage.get().getKey());
+        String imageCode = "productIds-images/%s/%s".formatted(category.getId(), categoryImage.get().getKey());
         s3Service.deleteObject(
                 bucketName,
                 imageCode
@@ -151,7 +153,7 @@ public class CategoryServiceImpl implements CategoryService {
 
 
     @Override
-    public S3ObjectCustom getImageByID(Category category, String bucketName) {
+    public S3ProductImages getImageByID(Category category, String bucketName) {
         Optional<CategoryImage> categoryImage = categoryImageRepository.findByCategory(category);
         if (categoryImage.isEmpty()) {
             throw new ResourceNotFoundException("Image not found");

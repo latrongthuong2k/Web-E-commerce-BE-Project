@@ -27,9 +27,12 @@ public interface TokenRepository extends JpaRepository<Token, Integer> {
 
     Optional<Token> findByToken(String token);
 
+    @Query(" select count(*) > 1 from Token t where t.token = ?1 and (t.expired = false or t.revoked = false ) ")
+    boolean isValidToken (String token);
+
     @Modifying
     @Query(value = """
-            DELETE FROM Token t WHERE  (t.expired = true or t.revoked = true )\s
+            DELETE FROM Token t WHERE  (t.expired = true or t.revoked = true )
             """)
     void deleteExpiredTokens();
 

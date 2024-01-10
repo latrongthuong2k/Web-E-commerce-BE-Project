@@ -14,7 +14,7 @@ public enum OrderStatusV2 {
             try {
                 return OrderStatusV2.valueOf(statusString.toUpperCase());
             } catch (IllegalArgumentException e) {
-                throw new RuntimeException("Not correct value of order status");
+                throw new IllegalArgumentException("Not correct value of order status");
             }
         }
         return null;

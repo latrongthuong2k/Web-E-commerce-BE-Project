@@ -6,10 +6,8 @@ import com.ecommerce.myapp.model.client.CartItem;
 import com.ecommerce.myapp.model.client.ProductWish;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.hibernate.proxy.HibernateProxy;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
@@ -18,16 +16,15 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
-@Data
+@Getter
+@Setter
+@ToString
 @Entity
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 @Table(name = "products")
 @EntityListeners(AuditingEntityListener.class)
 public class Product {
@@ -45,13 +42,15 @@ public class Product {
             sku = UUID.randomUUID().toString();
         }
     }
+   // lazy
     @ManyToMany
     @JoinTable(
             name = "product_sizes",
             joinColumns = @JoinColumn(name = "prod_id"),
             inverseJoinColumns = @JoinColumn(name = "size_id")
     )
-    private List<ProductSize> sizes;
+    @ToString.Exclude
+    private List<Size> sizes;
 
     @Column(name = "product_name", nullable = false, length = 100)
     private String productName;
@@ -89,22 +88,42 @@ public class Product {
     // category relationship table
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
+    @ToString.Exclude
     private Category category;
 
 
     //-----------------------------
     @OneToMany(mappedBy = "product")
+    @ToString.Exclude
     private Set<OrderDetail> orderDetails = new HashSet<>();
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
     private Set<ProductWish> productWishes = new HashSet<>();
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
     private Set<CartItem> cartItems = new HashSet<>();
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
     private Set<ProductImage> productImages = new HashSet<>();
 
     //-----------------------------
 
+    @Override
+    public final boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null) return false;
+        Class<?> oEffectiveClass = o instanceof HibernateProxy ? ((HibernateProxy) o).getHibernateLazyInitializer().getPersistentClass() : o.getClass();
+        Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
+        if (thisEffectiveClass != oEffectiveClass) return false;
+        Product product = (Product) o;
+        return getProductId() != null && Objects.equals(getProductId(), product.getProductId());
+    }
+
+    @Override
+    public final int hashCode() {
+        return this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass().hashCode() : getClass().hashCode();
+    }
 }

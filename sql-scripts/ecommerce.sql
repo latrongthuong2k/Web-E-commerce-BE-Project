@@ -123,7 +123,7 @@ LOCK TABLES `orders` WRITE;
 UNLOCK TABLES;
 
 --
--- Table structure for table `products`
+-- Table structure for table `productIds`
 --
 
 DROP TABLE IF EXISTS `products`;
@@ -155,7 +155,7 @@ CREATE TABLE `products`
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `products`
+-- Dumping data for table `productIds`
 --
 
 LOCK TABLES `products` WRITE;

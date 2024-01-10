@@ -49,7 +49,7 @@ public class GlobalExceptionHandler {
 //        return buildResponseEntity(HttpStatus.FORBIDDEN, ex, request);
 //    }
 
-    @ExceptionHandler({IllegalAccessException.class, IllegalArgumentException.class, MissingServletRequestParameterException.class})
+    @ExceptionHandler({IllegalAccessException.class, CannotDeleteException.class, MissingServletRequestParameterException.class})
     public ResponseEntity<ApiError> handleBadRequestExceptions(Exception ex, WebRequest request) {
         return buildResponseEntity(HttpStatus.BAD_REQUEST, ex, request);
     }
@@ -59,7 +59,7 @@ public class GlobalExceptionHandler {
         return buildResponseEntity(HttpStatus.CONFLICT, ex, request);
     }
 
-    @ExceptionHandler({InvalidTokenException.class, ResourceNotFoundException.class, EntityNotFoundException.class})
+    @ExceptionHandler({NullPointerException.class, InvalidTokenException.class, ResourceNotFoundException.class, EntityNotFoundException.class})
     public ResponseEntity<ApiError> handleNotFoundExceptions(Exception ex, WebRequest request) {
         return buildResponseEntity(HttpStatus.NOT_FOUND, ex, request);
     }
@@ -75,8 +75,8 @@ public class GlobalExceptionHandler {
         return buildResponseEntity(HttpStatus.UNAUTHORIZED, ex, request);
     }
 
-    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
-    public ResponseEntity<ApiError> handleMethodNotSupportedException(HttpRequestMethodNotSupportedException ex, WebRequest request) {
+    @ExceptionHandler({HttpRequestMethodNotSupportedException.class ,IllegalArgumentException.class})
+    public ResponseEntity<ApiError> handleMethodNotSupportedException(Exception ex, WebRequest request) {
         return buildResponseEntity(HttpStatus.METHOD_NOT_ALLOWED, ex, request);
     }
 

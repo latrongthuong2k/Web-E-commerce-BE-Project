@@ -99,8 +99,8 @@ public class SecurityConfiguration {
                                 .addLogoutHandler(logoutHandler)
                                 .logoutSuccessHandler((request, response, authentication) -> {
                                     SecurityContextHolder.clearContext();
+                                    response.sendRedirect("http://localhost:3000/jp/client/men");
                                 })
-                                .logoutSuccessUrl("http://localhost:3000")
                 );
         return http.build();
     }

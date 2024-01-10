@@ -2,9 +2,10 @@ package com.ecommerce.myapp.s3;
 
 import java.io.Serializable;
 
-public record S3ObjectCustom(
+public record S3ProductImagesDetail(
         
         String key,
-        String url
+        String url,
+        Boolean isPrimary
 ) implements Serializable {
 }

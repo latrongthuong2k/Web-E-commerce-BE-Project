@@ -2,6 +2,7 @@ package com.ecommerce.myapp.dtos.product;
 
 import com.ecommerce.myapp.model.group.Product;
 import com.ecommerce.myapp.model.group.ProductImage;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.validation.constraints.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -13,6 +14,7 @@ import java.util.Set;
 /**
  * DTO for {@link Product}
  */
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public record ProductFullInfoDTO(
         Long productId,
         String sku,
@@ -21,6 +23,10 @@ public record ProductFullInfoDTO(
         String productName,
         @Size(max = 1000, message = "Description must not exceed 1000 characters")
         String description,
+
+        @NotNull
+        String stringSizes,
+
         @NotNull(message = "Unit price cannot be null")
         @DecimalMin(value = "0.0", inclusive = false, message = "Unit price must be greater than 0")
         BigDecimal unitPrice,

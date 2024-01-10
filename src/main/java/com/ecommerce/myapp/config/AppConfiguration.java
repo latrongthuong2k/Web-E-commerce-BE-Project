@@ -68,7 +68,7 @@ public class AppConfiguration {
         CorsConfiguration configuration = new CorsConfiguration();
 //        configuration.setAllowedOrigins(List.of("https://web-admin-ecommerce-project.vercel.app"));
 //        configuration.setAllowedOrigins(List.of("http://localhost:3000"));
-        configuration.setAllowedOriginPatterns(List.of("http://localhost:3000")); // Cho phép domain của FE
+        configuration.setAllowedOriginPatterns(List.of("*")); // Cho phép domain của FE
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE")); // Thêm OPTIONS cho preflight
         configuration.setAllowedHeaders(List.of("Authorization", "Cache-Control", "Content-Type"));
         configuration.setExposedHeaders(List.of("*"));

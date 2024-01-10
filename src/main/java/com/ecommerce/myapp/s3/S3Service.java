@@ -59,18 +59,19 @@ public class S3Service {
      * @param keys       keys of image
      * @return Map of each image with key
      */
-    public Set<S3ObjectCustom> getObjects(String bucketName, List<String> keys) {
-        Set<S3ObjectCustom> objects = new HashSet<>();
+    public Set<S3ProductImages> getObjects(String bucketName, List<String> keys) {
+        Set<S3ProductImages> objects = new HashSet<>();
         keys.forEach(key -> {
             String url = String.format("https://%s.s3.amazonaws.com/%s", bucketName, key);
-            objects.add(new S3ObjectCustom(key, url));
+            objects.add(new S3ProductImages(key, url));
         });
         return objects;
     }
 
-    public S3ObjectCustom getObjectUrl(String bucketName, String key) {
+
+    public S3ProductImages getObjectUrl(String bucketName, String key) {
         var url = String.format("https://%s.s3.amazonaws.com/%s", bucketName, key);
-        return new S3ObjectCustom(key, url);
+        return new S3ProductImages(key, url);
     }
 
     /**
